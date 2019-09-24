@@ -72,7 +72,7 @@ spec:
     spec:
       initContainers:
       - name: quorum-genesis-init-container
-        image: quorumengineering/quorum:<%= @Quorum_Version %>
+        image: quay.io/smilo/go-smilo:<%= @Quorum_Version %>
         command: [ "sh" ]
         args:
         - "-cx"
@@ -96,27 +96,8 @@ spec:
           mountPath: <%= @Node_DataDir%>/contracts-tmp
           readOnly: false
       containers:
-    <% if @Tm_Name == "constellation"  %>
-      - name: constellation
-        image: quorumengineering/constellation:<%= @Tm_Version %>
-        command: ["sh"]
-        args:
-        - "-cx"
-        - "chmod 600 $QUORUM_HOME/tm/tm.key;
-           DDIR=$QUORUM_HOME/tm;
-           printenv;
-           args=\" --url=https://$<%= @Service_Prefix %>_SERVICE_HOST:<%= @Tm_Port %>/  \
-           --port=<%= @Tm_Port %> \
-           --workdir=$DDIR \
-           --socket=$DDIR/tm.ipc \
-           --publickeys=$QUORUM_HOME/tm/tm.pub \
-           --privatekeys=$QUORUM_HOME/tm/tm.key \
-           --verbosity=<%= @Geth_Verbosity%> \
-           --othernodes=https://$QUORUM_NODE1_SERVICE_HOST:<%= @Tm_Port %>/ \";
-           /usr/local/bin/constellation-node $args  2>&1 | tee -a $QUORUM_HOME/logs/tm.log; "
-     <% else %>
       - name: tessera
-        image: quorumengineering/tessera:<%= @Tm_Version %>
+        image: quay.io/smilo/smilo-blackbox:<%= @Tm_Version %>
         command: ["sh"]
         args:
         - "-cx"
@@ -124,8 +105,8 @@ spec:
            echo DDIR is $DDIR;
            printenv;
 
-           TESSERA_VERSION=$(unzip -p /tessera/tessera-app.jar META-INF/MANIFEST.MF | grep Tessera-Version | cut -d\" \" -f2);
-           echo \"Tessera version (extracted from manifest file): ${TESSERA_VERSION}\";
+           TESSERA_VERSION=<%= @Tm_Version %>
+           echo \"Blackbox version: ${TESSERA_VERSION}\";
 
            TESSERA_VERSION=\"${TESSERA_VERSION}-suffix\";
 
@@ -148,9 +129,8 @@ spec:
            if [[ \"${TESSERA_VERSION}\" \\> \"0.9 \" ]]; then CONFIG_FINAL=${CONFIG_FINAL_9_0}; fi;
            echo $CONFIG_FINAL >  ${DDIR}/tessera-config-with-hosts.json;
            cat  ${DDIR}/tessera-config-with-hosts.json;
-           java -Xms128M -Xmx128M -jar /tessera/tessera-app.jar -configfile ${DDIR}/tessera-config-with-hosts.json;
+           /usr/local/bin/blackbox -configfile ${DDIR}/tessera-config-with-hosts.json;
         "
-     <%- end %>
         ports:
           - containerPort: <%= @Tm_Port %>
         env:
@@ -189,39 +169,18 @@ spec:
         args:
         - "-cx"
         - "
-           apk add curl;
-           until $(curl --output /dev/null --silent --head --fail http://127.0.0.1:<%= @Tm_Port %>/upcheck); do echo 'waiting for transaction manager to start...'; sleep 5; done;
-           echo transaction manager is up;
-           PERM_NODE_TMPL=$(cat $QUORUM_DATA_DIR/permissioned-nodes.json.tmpl);
-           PERM_NODE_JSON=$(echo $PERM_NODE_TMPL | <%= @Sed_Set_Node_Service_Host %>);
-           echo $PERM_NODE_JSON >  $QUORUM_DATA_DIR/permissioned-nodes.json;
-           cp $QUORUM_DATA_DIR/permissioned-nodes.json $QUORUM_DATA_DIR/static-nodes.json;
-
-           rm -r <%= @Node_DataDir %>/contracts-tmp;
-
-           echo what in this dir;
-           ls  $QUORUM_DATA_DIR;
-           cat /etc/quorum/genesis/genesis-geth.json;
-
-           chmod 644 $QUORUM_DATA_DIR/keystore/key;
-           touch $QUORUM_DATA_DIR/password.txt;
-           NETWORK_ID=<%= @Geth_Network_Id %>
-         <% if @config["quorum"]["consensus"] == "raft" %>
-           args=\" --raft --maxpeers <%= @nodes.size %>  --raftport <%= @Raft_Port %> --rpcapi admin,db,eth,debug,miner,net,shh,txpool,personal,web3,quorum,raft \";
-         <% elsif @config["quorum"]["consensus"] == "istanbul" %>
-           args=\" --istanbul.blockperiod 3  --syncmode full --mine --minerthreads 1 --rpcapi admin,db,eth,debug,miner,net,shh,txpool,personal,web3,quorum,istanbul \";
+         <% if @config["quorum"]["consensus"] == "istanbul" %>
+           args=\" --smilobft.permissioned=true --smilobft.blockperiod 1 --smilobft.requesttimeout 10000 --syncmode full --mine --miner.gasprice 1 --miner.threads 1 --rpcapi admin,db,eth,debug,miner,net,shh,txpool,personal,web3,smilobft,sport  \";
          <% else %>
-           args=\"--rpcapi admin,db,eth,debug,miner,net,shh,txpool,personal,web3,quorum \";
+           args=\"--rpcapi admin,db,eth,debug,miner,net,shh,txpool,personal,web3,smilobft,sport \";
          <% end %>
            /usr/local/bin/geth \
            --datadir $QUORUM_DATA_DIR \
            $args \
-           --permissioned \
-           --nodiscover \
            --nat=none \
            --verbosity <%= @Geth_Verbosity %> \
            --networkid $NETWORK_ID \
-           --unlock 0 \
+           --allow-insecure-unlock \
            --emitcheckpoints \
            --rpc \
            --rpcaddr 0.0.0.0 \
@@ -230,7 +189,6 @@ spec:
            <%= @Geth_Startup_Params %> \
            --password $QUORUM_DATA_DIR/password.txt 2>&1 | tee -a <%= @Node_DataDir%>/logs/quorum.log;"
         ports:
-          - containerPort: <%= @Raft_Port %>
           - containerPort: <%= @Node_WSPort %>
           - containerPort: <%= @NodeP2P_ListenAddr %>
         env:

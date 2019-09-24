@@ -20,7 +20,6 @@ quorum:
   Genesis_File: 7nodes/istanbul-7nodes/istanbul-genesis.json
   # related to quorum containers
   quorum:
-    Raft_Port: 50401
     # container images at https://hub.docker.com/u/quorumengineering/
     Quorum_Version: 2.2.3
   # related to transaction manager containers

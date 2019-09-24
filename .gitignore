@@ -5,3 +5,4 @@ out/
 qubernetes.yaml
 nodes.yaml
 7nodes
+istanbul-helpers/node_modules

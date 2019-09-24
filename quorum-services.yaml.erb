@@ -51,8 +51,4 @@ spec:
       protocol: TCP
       port: <%= @NodeP2P_ListenAddr %>
       targetPort: <%= @NodeP2P_ListenAddr %>
-    - name: raft
-      protocol: TCP
-      targetPort: <%= @Raft_Port %>
-      port: <%= @Raft_Port %>
 <% end -%>

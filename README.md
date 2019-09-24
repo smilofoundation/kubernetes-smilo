@@ -1,5 +1,11 @@
 ## Qubernetes
 
+```
+./quorum-init
+ ./quorum-config
+```
+
+
 A project for deploying [Quorum](https://github.com/jpmorganchase/quorum) on [Kubernetes](https://github.com/kubernetes/kubernetes).
 
 ## Install 

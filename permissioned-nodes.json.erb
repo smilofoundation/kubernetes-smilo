@@ -21,7 +21,7 @@ end
         @Enode = "#{line}".gsub(/\s+/, "")
         end
     -%>
-       "enode://<%= @Enode %>@%<%= "#{@Node_UserIdent}".upcase %>_SERVICE_HOST%:<%= @NodeP2P_ListenAddr%>?discport=0&raftport=50401"<%- if (indexNode != @nodes.size - 1) %>,<%- end %>
+       "enode://<%= @Enode %>@%<%= "#{@Node_UserIdent}".upcase %>_SERVICE_HOST%:<%= @NodeP2P_ListenAddr%>"<%- if (indexNode != @nodes.size - 1) %>,<%- end %>
 
 <% end -%>
 ]

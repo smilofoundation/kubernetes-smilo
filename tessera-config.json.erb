@@ -7,9 +7,6 @@ end
 -%>
 
 <%
-# for more information about the tessera-config file see https://github.com/jpmorganchase/tessera/wiki/Configuration-overview
-%>
-<%
    @Key_Dir_Base = @config["quorum"]["Key_Dir_Base"]
    @Tm_Port      = @config["quorum"]["tm"]["Port"]
    @Node_DataDir = @config["quorum"]["Node_DataDir"]
@@ -18,29 +15,22 @@ end
 
 {
     "useWhiteList": false,
-    "jdbc": {
-        "username": "sa",
-        "password": "",
-        "url": "jdbc:h2:<%= @DDIR %>/db;MODE=Oracle;TRACE_LEVEL_SYSTEM_OUT=0",
-        "autoCreateTables": true
-    },
     "server": {
         "port": <%= @Tm_Port %>,
         "hostName": "http://%THIS_SERVICE_HOST%",
-        "bindingAddress": "http://0.0.0.0:<%= @Tm_Port %>",
         "sslConfig": {
             "tls": "OFF",
             "generateKeyStoreIfNotExisted": true,
             "serverKeyStore": "<%= @DDIR %>/server-keystore",
-            "serverKeyStorePassword": "quorum",
+            "serverKeyStorePassword": "smilo",
             "serverTrustStore": "<%= @DDIR %>/server-truststore",
-            "serverTrustStorePassword": "quorum",
+            "serverTrustStorePassword": "smilo",
             "serverTrustMode": "TOFU",
             "knownClientsFile": "<%= @DDIR %>/knownClients",
             "clientKeyStore": "<%= @DDIR %>/client-keystore",
-            "clientKeyStorePassword": "quorum",
+            "clientKeyStorePassword": "smilo",
             "clientTrustStore": "<%= @DDIR %>/client-truststore",
-            "clientTrustStorePassword": "quorum",
+            "clientTrustStorePassword": "smilo",
             "clientTrustMode": "TOFU",
             "knownServersFile": "<%= @DDIR %>/knownServers"
         }
@@ -58,12 +48,14 @@ end
         "passwords": [],
         "keyData": [
             {
-                "privateKeyPath": "<%= @DDIR %>/tm.key",
-                "publicKeyPath": "<%= @DDIR %>/tm.pub"
+                "config": "<%= @DDIR %>/tm.key",
+                "publicKey": "<%= @DDIR %>/tm.pub"
             }
         ]
     },
     "alwaysSendTo": [],
-    "unixSocketFile": "<%= @DDIR %>/tm.ipc"
+    "socket": "<%= @DDIR %>/tm.ipc",
+    "dbfile": "<%= @DDIR %>/blackbox.db",
+    "peersdbfile": "<%= @DDIR %>/blackbox-peers.db"
 }
 

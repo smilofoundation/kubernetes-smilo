@@ -154,14 +154,8 @@ spec:
         - name: tessera-config
           mountPath: <%= @Node_DataDir %>/tm/tessera-config.json.tmpl
           subPath: tessera-config.json.tmpl
-        - name: tessera-config
-          mountPath: <%= @Node_DataDir %>/tm/tessera-config-enhanced.json.tmpl
-          subPath: tessera-config-enhanced.json.tmpl
-        - name: tessera-config
-          mountPath: <%= @Node_DataDir %>/tm/tessera-config-9.0.json.tmpl
-          subPath: tessera-config-9.0.json.tmpl
       - name: quorum
-        image: quorumengineering/quorum:<%= @Quorum_Version %>
+        image: quay.io/smilo/go-smilo:<%= @Quorum_Version %>
         command: [ "sh" ]
         # TODO: have to generate sed files
         #       PERM_NODE_JSON=$(echo $PERM_NODE_TMPL | sed \"s/%QUORUM-NODE01_SERVICE_HOST%/$QUORUM_NODE01_SERVICE_HOST/g\" | sed \"s/%QUORUM-NODE02_SERVICE_HOST%/$QUORUM_NODE02_SERVICE_HOST/g\");
@@ -243,11 +237,11 @@ spec:
           items:
           - key: tessera-config.json.tmpl
             path: tessera-config.json.tmpl
-          - key: tessera-config-enhanced.json.tmpl
-            path: tessera-config-enhanced.json.tmpl
-          - key: tessera-config-9.0.json.tmpl
-            path: tessera-config-9.0.json.tmpl
-      - name: contracts-config
+      #     - key: tessera-config-enhanced.json.tmpl
+      #       path: tessera-config-enhanced.json.tmpl
+      #     - key: tessera-config-9.0.json.tmpl
+      #       path: tessera-config-9.0.json.tmpl
+      # - name: contracts-config
         configMap:
           name: contracts-config
       - name: keystore-tm

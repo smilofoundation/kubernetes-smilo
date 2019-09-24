@@ -19,7 +19,7 @@ quorum:
   # related to quorum containers
   quorum:
     # container images at https://hub.docker.com/u/quorumengineering/
-    Quorum_Version: 2.2.3
+    Quorum_Version: v1.9.2
   # related to transaction manager containers
   tm:
     # container images at https://hub.docker.com/u/quorumengineering/

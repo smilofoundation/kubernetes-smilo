@@ -62,15 +62,6 @@ data:
     <%= line -%>
 <% end -%>
 
-  tessera-config-enhanced.json.tmpl: |-
-<%- File.readlines(@Tessera_Config_Dir + "/tessera-config-enhanced.json").each do |line| -%>
-    <%= line -%>
-<% end -%>
-  tessera-config-9.0.json.tmpl: |-
-<%- File.readlines(@Tessera_Config_Dir + "/tessera-config-9.0.json").each do |line| -%>
-    <%= line -%>
-<% end -%>
-
 ---
 apiVersion: v1
 kind: ConfigMap

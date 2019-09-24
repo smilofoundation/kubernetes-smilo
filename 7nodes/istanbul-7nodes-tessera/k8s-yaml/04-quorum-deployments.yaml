@@ -110,12 +110,12 @@ spec:
         - name: tessera-config
           mountPath: /etc/quorum/qdata/tm/tessera-config.json.tmpl
           subPath: tessera-config.json.tmpl
-        - name: tessera-config
-          mountPath: /etc/quorum/qdata/tm/tessera-config-enhanced.json.tmpl
-          subPath: tessera-config-enhanced.json.tmpl
-        - name: tessera-config
-          mountPath: /etc/quorum/qdata/tm/tessera-config-9.0.json.tmpl
-          subPath: tessera-config-9.0.json.tmpl
+#        - name: tessera-config
+#          mountPath: /etc/quorum/qdata/tm/tessera-config-enhanced.json.tmpl
+#          subPath: tessera-config-enhanced.json.tmpl
+#        - name: tessera-config
+#          mountPath: /etc/quorum/qdata/tm/tessera-config-9.0.json.tmpl
+#          subPath: tessera-config-9.0.json.tmpl
       - name: quorum
         image: quay.io/smilo/go-smilo:v1.9.2
         command: [ "sh" ]
@@ -212,10 +212,10 @@ spec:
           items:
           - key: tessera-config.json.tmpl
             path: tessera-config.json.tmpl
-          - key: tessera-config-enhanced.json.tmpl
-            path: tessera-config-enhanced.json.tmpl
-          - key: tessera-config-9.0.json.tmpl
-            path: tessera-config-9.0.json.tmpl
+#          - key: tessera-config-enhanced.json.tmpl
+#            path: tessera-config-enhanced.json.tmpl
+#          - key: tessera-config-9.0.json.tmpl
+#            path: tessera-config-9.0.json.tmpl
       - name: contracts-config
         configMap:
           name: contracts-config
@@ -359,12 +359,12 @@ spec:
         - name: tessera-config
           mountPath: /etc/quorum/qdata/tm/tessera-config.json.tmpl
           subPath: tessera-config.json.tmpl
-        - name: tessera-config
-          mountPath: /etc/quorum/qdata/tm/tessera-config-enhanced.json.tmpl
-          subPath: tessera-config-enhanced.json.tmpl
-        - name: tessera-config
-          mountPath: /etc/quorum/qdata/tm/tessera-config-9.0.json.tmpl
-          subPath: tessera-config-9.0.json.tmpl
+#        - name: tessera-config
+#          mountPath: /etc/quorum/qdata/tm/tessera-config-enhanced.json.tmpl
+#          subPath: tessera-config-enhanced.json.tmpl
+#        - name: tessera-config
+#          mountPath: /etc/quorum/qdata/tm/tessera-config-9.0.json.tmpl
+#          subPath: tessera-config-9.0.json.tmpl
       - name: quorum
         image: quay.io/smilo/go-smilo:v1.9.2
         command: [ "sh" ]
@@ -461,10 +461,10 @@ spec:
           items:
           - key: tessera-config.json.tmpl
             path: tessera-config.json.tmpl
-          - key: tessera-config-enhanced.json.tmpl
-            path: tessera-config-enhanced.json.tmpl
-          - key: tessera-config-9.0.json.tmpl
-            path: tessera-config-9.0.json.tmpl
+#          - key: tessera-config-enhanced.json.tmpl
+#            path: tessera-config-enhanced.json.tmpl
+#          - key: tessera-config-9.0.json.tmpl
+#            path: tessera-config-9.0.json.tmpl
       - name: contracts-config
         configMap:
           name: contracts-config
@@ -608,12 +608,12 @@ spec:
         - name: tessera-config
           mountPath: /etc/quorum/qdata/tm/tessera-config.json.tmpl
           subPath: tessera-config.json.tmpl
-        - name: tessera-config
-          mountPath: /etc/quorum/qdata/tm/tessera-config-enhanced.json.tmpl
-          subPath: tessera-config-enhanced.json.tmpl
-        - name: tessera-config
-          mountPath: /etc/quorum/qdata/tm/tessera-config-9.0.json.tmpl
-          subPath: tessera-config-9.0.json.tmpl
+#        - name: tessera-config
+#          mountPath: /etc/quorum/qdata/tm/tessera-config-enhanced.json.tmpl
+#          subPath: tessera-config-enhanced.json.tmpl
+#        - name: tessera-config
+#          mountPath: /etc/quorum/qdata/tm/tessera-config-9.0.json.tmpl
+#          subPath: tessera-config-9.0.json.tmpl
       - name: quorum
         image: quay.io/smilo/go-smilo:v1.9.2
         command: [ "sh" ]
@@ -710,10 +710,10 @@ spec:
           items:
           - key: tessera-config.json.tmpl
             path: tessera-config.json.tmpl
-          - key: tessera-config-enhanced.json.tmpl
-            path: tessera-config-enhanced.json.tmpl
-          - key: tessera-config-9.0.json.tmpl
-            path: tessera-config-9.0.json.tmpl
+#          - key: tessera-config-enhanced.json.tmpl
+#            path: tessera-config-enhanced.json.tmpl
+#          - key: tessera-config-9.0.json.tmpl
+#            path: tessera-config-9.0.json.tmpl
       - name: contracts-config
         configMap:
           name: contracts-config
@@ -857,12 +857,12 @@ spec:
         - name: tessera-config
           mountPath: /etc/quorum/qdata/tm/tessera-config.json.tmpl
           subPath: tessera-config.json.tmpl
-        - name: tessera-config
-          mountPath: /etc/quorum/qdata/tm/tessera-config-enhanced.json.tmpl
-          subPath: tessera-config-enhanced.json.tmpl
-        - name: tessera-config
-          mountPath: /etc/quorum/qdata/tm/tessera-config-9.0.json.tmpl
-          subPath: tessera-config-9.0.json.tmpl
+#        - name: tessera-config
+#          mountPath: /etc/quorum/qdata/tm/tessera-config-enhanced.json.tmpl
+#          subPath: tessera-config-enhanced.json.tmpl
+#        - name: tessera-config
+#          mountPath: /etc/quorum/qdata/tm/tessera-config-9.0.json.tmpl
+#          subPath: tessera-config-9.0.json.tmpl
       - name: quorum
         image: quay.io/smilo/go-smilo:v1.9.2
         command: [ "sh" ]
@@ -959,10 +959,10 @@ spec:
           items:
           - key: tessera-config.json.tmpl
             path: tessera-config.json.tmpl
-          - key: tessera-config-enhanced.json.tmpl
-            path: tessera-config-enhanced.json.tmpl
-          - key: tessera-config-9.0.json.tmpl
-            path: tessera-config-9.0.json.tmpl
+#          - key: tessera-config-enhanced.json.tmpl
+#            path: tessera-config-enhanced.json.tmpl
+#          - key: tessera-config-9.0.json.tmpl
+#            path: tessera-config-9.0.json.tmpl
       - name: contracts-config
         configMap:
           name: contracts-config
@@ -1106,12 +1106,12 @@ spec:
         - name: tessera-config
           mountPath: /etc/quorum/qdata/tm/tessera-config.json.tmpl
           subPath: tessera-config.json.tmpl
-        - name: tessera-config
-          mountPath: /etc/quorum/qdata/tm/tessera-config-enhanced.json.tmpl
-          subPath: tessera-config-enhanced.json.tmpl
-        - name: tessera-config
-          mountPath: /etc/quorum/qdata/tm/tessera-config-9.0.json.tmpl
-          subPath: tessera-config-9.0.json.tmpl
+#        - name: tessera-config
+#          mountPath: /etc/quorum/qdata/tm/tessera-config-enhanced.json.tmpl
+#          subPath: tessera-config-enhanced.json.tmpl
+#        - name: tessera-config
+#          mountPath: /etc/quorum/qdata/tm/tessera-config-9.0.json.tmpl
+#          subPath: tessera-config-9.0.json.tmpl
       - name: quorum
         image: quay.io/smilo/go-smilo:v1.9.2
         command: [ "sh" ]
@@ -1208,10 +1208,10 @@ spec:
           items:
           - key: tessera-config.json.tmpl
             path: tessera-config.json.tmpl
-          - key: tessera-config-enhanced.json.tmpl
-            path: tessera-config-enhanced.json.tmpl
-          - key: tessera-config-9.0.json.tmpl
-            path: tessera-config-9.0.json.tmpl
+#          - key: tessera-config-enhanced.json.tmpl
+#            path: tessera-config-enhanced.json.tmpl
+#          - key: tessera-config-9.0.json.tmpl
+#            path: tessera-config-9.0.json.tmpl
       - name: contracts-config
         configMap:
           name: contracts-config
@@ -1355,12 +1355,12 @@ spec:
         - name: tessera-config
           mountPath: /etc/quorum/qdata/tm/tessera-config.json.tmpl
           subPath: tessera-config.json.tmpl
-        - name: tessera-config
-          mountPath: /etc/quorum/qdata/tm/tessera-config-enhanced.json.tmpl
-          subPath: tessera-config-enhanced.json.tmpl
-        - name: tessera-config
-          mountPath: /etc/quorum/qdata/tm/tessera-config-9.0.json.tmpl
-          subPath: tessera-config-9.0.json.tmpl
+#        - name: tessera-config
+#          mountPath: /etc/quorum/qdata/tm/tessera-config-enhanced.json.tmpl
+#          subPath: tessera-config-enhanced.json.tmpl
+#        - name: tessera-config
+#          mountPath: /etc/quorum/qdata/tm/tessera-config-9.0.json.tmpl
+#          subPath: tessera-config-9.0.json.tmpl
       - name: quorum
         image: quay.io/smilo/go-smilo:v1.9.2
         command: [ "sh" ]
@@ -1457,10 +1457,10 @@ spec:
           items:
           - key: tessera-config.json.tmpl
             path: tessera-config.json.tmpl
-          - key: tessera-config-enhanced.json.tmpl
-            path: tessera-config-enhanced.json.tmpl
-          - key: tessera-config-9.0.json.tmpl
-            path: tessera-config-9.0.json.tmpl
+#          - key: tessera-config-enhanced.json.tmpl
+#            path: tessera-config-enhanced.json.tmpl
+#          - key: tessera-config-9.0.json.tmpl
+#            path: tessera-config-9.0.json.tmpl
       - name: contracts-config
         configMap:
           name: contracts-config
@@ -1604,12 +1604,12 @@ spec:
         - name: tessera-config
           mountPath: /etc/quorum/qdata/tm/tessera-config.json.tmpl
           subPath: tessera-config.json.tmpl
-        - name: tessera-config
-          mountPath: /etc/quorum/qdata/tm/tessera-config-enhanced.json.tmpl
-          subPath: tessera-config-enhanced.json.tmpl
-        - name: tessera-config
-          mountPath: /etc/quorum/qdata/tm/tessera-config-9.0.json.tmpl
-          subPath: tessera-config-9.0.json.tmpl
+#        - name: tessera-config
+#          mountPath: /etc/quorum/qdata/tm/tessera-config-enhanced.json.tmpl
+#          subPath: tessera-config-enhanced.json.tmpl
+#        - name: tessera-config
+#          mountPath: /etc/quorum/qdata/tm/tessera-config-9.0.json.tmpl
+#          subPath: tessera-config-9.0.json.tmpl
       - name: quorum
         image: quay.io/smilo/go-smilo:v1.9.2
         command: [ "sh" ]
@@ -1706,10 +1706,10 @@ spec:
           items:
           - key: tessera-config.json.tmpl
             path: tessera-config.json.tmpl
-          - key: tessera-config-enhanced.json.tmpl
-            path: tessera-config-enhanced.json.tmpl
-          - key: tessera-config-9.0.json.tmpl
-            path: tessera-config-9.0.json.tmpl
+#          - key: tessera-config-enhanced.json.tmpl
+#            path: tessera-config-enhanced.json.tmpl
+#          - key: tessera-config-9.0.json.tmpl
+#            path: tessera-config-9.0.json.tmpl
       - name: contracts-config
         configMap:
           name: contracts-config

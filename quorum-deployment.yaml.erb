@@ -171,11 +171,11 @@ spec:
            /usr/local/bin/geth \
            --datadir $QUORUM_DATA_DIR \
            $args \
-           --nat=none \
            --verbosity <%= @Geth_Verbosity %> \
            --allow-insecure-unlock \
+           --unlock 0 \
            --rpc \
-           --rpcaddr 0.0.0.0 \
+           --rpcaddr 127.0.0.1 \
            --rpcport <%= @Node_WSPort %> \
            --port <%= @NodeP2P_ListenAddr %> \
            <%= @Geth_Startup_Params %> \

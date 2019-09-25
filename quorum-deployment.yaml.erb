@@ -164,7 +164,7 @@ spec:
         - "-cx"
         - "
          <% if @config["quorum"]["consensus"] == "istanbul" %>
-           args=\" --smilobft.permissioned=true --smilobft.blockperiod 1 --smilobft.requesttimeout 10000 --syncmode full --mine --miner.gasprice 1 --miner.threads 1 --rpcapi admin,db,eth,debug,miner,net,shh,txpool,personal,web3,smilobft,sport  \";
+           args=\" --smilobft.permissioned=true --testnet --smilobft.blockperiod 1 --smilobft.requesttimeout 10000 --syncmode full --mine --miner.gasprice 1 --miner.threads 1 --rpcapi admin,db,eth,debug,miner,net,shh,txpool,personal,web3,smilobft,sport  \";
          <% else %>
            args=\"--rpcapi admin,db,eth,debug,miner,net,shh,txpool,personal,web3,smilobft,sport \";
          <% end %>

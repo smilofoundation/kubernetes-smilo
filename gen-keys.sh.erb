@@ -36,8 +36,8 @@ for node_key_dir in "${array[@]}"; do
   cd $KEY_DIR
   echo | blackbox -generate-keys $KEY_DIR/tm
   touch password.txt
-  geth --keystore $KEY_DIR  account new --password password.txt
   bootnode -genkey nodekey
-  bootnode  -nodekeyhex $(cat nodekey) -writeaddress > enode
+  bootnode -nodekeyhex $(cat nodekey) -writeaddress > enode
+  geth account import $KEY_DIR/nodekey --keystore $KEY_DIR --password password.txt
   popd
 done

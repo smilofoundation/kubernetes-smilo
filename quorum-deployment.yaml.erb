@@ -183,7 +183,7 @@ spec:
          <% else %>
            args=\"--rpcapi admin,db,eth,debug,miner,net,shh,txpool,personal,web3,smilobft,sport \";
          <% end %>
-           /usr/local/bin/geth \
+           VAULT_IPC=<%= @Node_DataDir %>/tm/tm.ipc /usr/local/bin/geth \
            --datadir $QUORUM_DATA_DIR \
            $args \
            --verbosity <%= @Geth_Verbosity %> \

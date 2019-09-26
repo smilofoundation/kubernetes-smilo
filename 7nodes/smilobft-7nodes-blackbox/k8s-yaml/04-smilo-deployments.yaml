@@ -1,0 +1,1661 @@
+---
+
+
+
+
+# The smilo deployment consists of
+# 1. the transaction manager / private tx container (blackbox)
+# 2. the smilo node container
+
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: smilo-node1-deployment
+  namespace: smilo-test
+spec:
+  strategy:
+    type: RollingUpdate
+  replicas: 1
+  template:
+    metadata:
+      name:  smilo-node1-deployment
+      labels:
+        app: kubernetes-smilo
+        tier: backend
+        name: smilo-node1-deployment
+    spec:
+      initContainers:
+      - name: smilo-genesis-init-container
+        image: quay.io/smilo/go-smilo:v1.9.2
+        command: [ "sh" ]
+        args:
+        - "-cx"
+        - "if [ ! -f $SMILO_DATA_DIR/genesis_created ]; then
+              /usr/local/bin/geth --datadir $SMILO_DATA_DIR init /etc/smilo/genesis/genesis-geth.json;
+              touch $SMILO_DATA_DIR/genesis_created;
+           fi;
+           cp -r /etc/smilo/sdata/contracts-tmp /etc/smilo/sdata/contracts;
+           chmod 755  /etc/smilo/sdata/contracts/runscript.sh;
+          "
+        env:
+          - name: SMILO_DATA_DIR
+            value: /etc/smilo/sdata/dd
+        volumeMounts:
+        - name: smilo-persistent-storage
+          mountPath:  /etc/smilo/sdata
+        - name: genesis-config-persistent-storage
+          mountPath: /etc/smilo/genesis/genesis-geth.json
+          subPath: genesis-geth.json
+        - name: contracts-config
+          mountPath: /etc/smilo/sdata/contracts-tmp
+          readOnly: false
+      containers:
+      - name: blackbox
+        image: quay.io/smilo/smilo-blackbox:v1.0.4
+        command: ["sh"]
+        args:
+        - "-cx"
+        - "chmod 600 $SMILO_HOME/tm/tm.key;
+           echo DDIR is $DDIR;
+           printenv;
+
+           BLACKBOX_VERSION=v1.0.4
+           echo \"Blackbox version: ${BLACKBOX_VERSION}\";
+
+           BLACKBOX_VERSION=\"${BLACKBOX_VERSION}-suffix\";
+
+           BLACKBOX_CONFIG_TYPE=;
+
+           if [ \"${BLACKBOX_VERSION}\" \\> \"0.8 \" ]; then BLACKBOX_CONFIG_TYPE=\"-enhanced\"; fi;
+           if [[ \"${BLACKBOX_VERSION}\" \\> \"0.9 \" ]]; then BLACKBOX_CONFIG_TYPE=\"-9.0\"; fi;
+
+           echo Config type ${BLACKBOX_CONFIG_TYPE};
+
+           CONFIG_TMPL=$(cat ${DDIR}/blackbox-config${BLACKBOX_CONFIG_TYPE}.json.tmpl);
+
+           CONFIG_WITH_OTHER_HOSTS=$(echo $CONFIG_TMPL |  sed \"s/%SMILO-NODE1_SERVICE_HOST%/$SMILO_NODE1_SERVICE_HOST/g\" |  sed \"s/%SMILO-NODE2_SERVICE_HOST%/$SMILO_NODE2_SERVICE_HOST/g\" |  sed \"s/%SMILO-NODE3_SERVICE_HOST%/$SMILO_NODE3_SERVICE_HOST/g\" |  sed \"s/%SMILO-NODE4_SERVICE_HOST%/$SMILO_NODE4_SERVICE_HOST/g\" |  sed \"s/%SMILO-NODE5_SERVICE_HOST%/$SMILO_NODE5_SERVICE_HOST/g\" |  sed \"s/%SMILO-NODE6_SERVICE_HOST%/$SMILO_NODE6_SERVICE_HOST/g\" |  sed \"s/%SMILO-NODE7_SERVICE_HOST%/$SMILO_NODE7_SERVICE_HOST/g\" ) ;
+           CONFIG_WITH_ALL_HOSTS=$(echo $CONFIG_WITH_OTHER_HOSTS | sed \"s/%THIS_SERVICE_HOST%/$SMILO_NODE1_SERVICE_HOST/g\");
+           PRIV_KEY=$(cat $DDIR/tm.key)
+           PUB_KEY=$(cat $DDIR/tm.pub)
+           CONFIG_FINAL=$(echo $CONFIG_WITH_ALL_HOSTS | sed \"s-%THIS_PRIV_KEY%-${PRIV_KEY}-g\" |  sed \"s-%THIS_PUB_KEY%-${PUB_KEY}-g\");
+           CONFIG_FINAL_9_0=$(echo $CONFIG_WITH_ALL_HOSTS | sed \"s-%THIS_PRIV_KEY%-${DDIR}/tm.key-g\" |  sed \"s-%THIS_PUB_KEY%-${DDIR}/tm.pub-g\");
+           if [[ \"${BLACKBOX_VERSION}\" \\> \"0.9 \" ]]; then CONFIG_FINAL=${CONFIG_FINAL_9_0}; fi;
+           echo $CONFIG_FINAL >  ${DDIR}/blackbox-config-with-hosts.json;
+           cat  ${DDIR}/blackbox-config-with-hosts.json;
+           /usr/local/bin/blackbox -configfile ${DDIR}/blackbox-config-with-hosts.json;
+        "
+        ports:
+          - containerPort: 9001
+        env:
+          - name: SMILO_HOME
+            value: /etc/smilo/sdata
+          - name: DDIR
+            value: /etc/smilo/sdata/tm
+        volumeMounts:
+        - name: smilo-logs-persistent-storage
+          mountPath: /etc/smilo/sdata/logs
+        - name: tm-persistent-storage
+          mountPath: /etc/smilo/sdata/tm
+        - name: smilo-persistent-storage
+          mountPath: /etc/smilo/sdata
+        - name: keystore-tm
+          mountPath: /etc/smilo/sdata/tm/tm.pub
+          subPath: tm.pub
+        - name: keystore-tm
+          mountPath: /etc/smilo/sdata/tm/tm.key
+          subPath: tm.key
+        - name: blackbox-config
+          mountPath: /etc/smilo/sdata/tm/blackbox-config.json.tmpl
+          subPath: blackbox-config.json.tmpl
+      - name: smilo
+        image: quay.io/smilo/go-smilo:v1.9.2
+        command: [ "sh" ]
+        # TODO: have to generate sed files
+        #       PERM_NODE_JSON=$(echo $PERM_NODE_TMPL | sed \"s/%SMILO-NODE01_SERVICE_HOST%/$SMILO_NODE01_SERVICE_HOST/g\" | sed \"s/%SMILO-NODE02_SERVICE_HOST%/$SMILO_NODE02_SERVICE_HOST/g\");
+        # sleep to give constellation some time to start up and discover the other nodes.
+        args:
+        - "-cx"
+        - "
+         
+           sleep 5;
+           PERM_NODE_TMPL=$(cat $SMILO_DATA_DIR/permissioned-nodes.json.tmpl);
+           PERM_NODE_JSON=$(echo $PERM_NODE_TMPL |  sed \"s/%SMILO-NODE1_SERVICE_HOST%/$SMILO_NODE1_SERVICE_HOST/g\" |  sed \"s/%SMILO-NODE2_SERVICE_HOST%/$SMILO_NODE2_SERVICE_HOST/g\" |  sed \"s/%SMILO-NODE3_SERVICE_HOST%/$SMILO_NODE3_SERVICE_HOST/g\" |  sed \"s/%SMILO-NODE4_SERVICE_HOST%/$SMILO_NODE4_SERVICE_HOST/g\" |  sed \"s/%SMILO-NODE5_SERVICE_HOST%/$SMILO_NODE5_SERVICE_HOST/g\" |  sed \"s/%SMILO-NODE6_SERVICE_HOST%/$SMILO_NODE6_SERVICE_HOST/g\" |  sed \"s/%SMILO-NODE7_SERVICE_HOST%/$SMILO_NODE7_SERVICE_HOST/g\" );
+           echo $PERM_NODE_JSON >  $SMILO_DATA_DIR/permissioned-nodes.json;
+           cp $SMILO_DATA_DIR/permissioned-nodes.json $SMILO_DATA_DIR/static-nodes.json;
+
+           rm -r /etc/smilo/sdata/contracts-tmp;
+
+           echo what in this dir;
+           ls  $SMILO_DATA_DIR;
+           cat /etc/smilo/genesis/genesis-geth.json;
+
+           chmod 644 $SMILO_DATA_DIR/keystore/key;
+           touch $SMILO_DATA_DIR/password.txt;
+
+           args=\" --smilobft.permissioned=true --smilobft.blockperiod 1 --smilobft.requesttimeout 10000 --syncmode full --mine --miner.gasprice 1 --miner.threads 1 --rpcapi admin,db,eth,debug,miner,net,shh,txpool,personal,web3,smilobft,sport  \";
+         
+           VAULT_IPC=/etc/smilo/sdata/tm/tm.ipc /usr/local/bin/geth \
+           --datadir $SMILO_DATA_DIR \
+           $args \
+           --verbosity 9 \
+           --allow-insecure-unlock \
+           --unlock 0 \
+           --rpc \
+           --rpcaddr 127.0.0.1 \
+           --rpcport 8546 \
+           --port 21000 \
+            \
+           --password $SMILO_DATA_DIR/password.txt 2>&1 | tee -a /etc/smilo/sdata/logs/smilo.log;"
+        ports:
+          - containerPort: 8546
+          - containerPort: 21000
+        env:
+        - name: PRIVATE_CONFIG
+          value: /etc/smilo/sdata/tm/tm.ipc
+        - name: SMILO_DATA_DIR
+          value: /etc/smilo/sdata/dd
+        - name: SMILO_HOME
+          value: /etc/smilo/sdata
+        - name: SHOME
+          value: /etc/smilo/sdata
+        - name: TM_HOME
+          value: /etc/smilo/sdata/tm/
+        volumeMounts:
+        - name: genesis-config-persistent-storage
+          mountPath: /etc/smilo/genesis/genesis-geth.json
+          subPath: genesis-geth.json
+        - name: smilo-persistent-storage
+          mountPath: /etc/smilo/sdata
+        - name: tm-persistent-storage
+          mountPath: /etc/smilo/sdata/tm
+        - name: smilo-key-config-persistent-storage
+          mountPath: /etc/smilo/sdata/dd/keystore/key
+          subPath: key
+        - name: smilo-logs-persistent-storage
+          mountPath: /etc/smilo/sdata/logs
+        - name: smilo-nodekey
+          mountPath: /etc/smilo/sdata/dd/geth/nodekey
+          subPath: nodekey
+        - name: smilo-permissioned-config
+          mountPath: /etc/smilo/sdata/dd/permissioned-nodes.json.tmpl
+          subPath: permissioned-nodes.json
+        - name: smilo-permissioned-config
+          mountPath: /etc/smilo/sdata/dd/static-nodes.json.tmpl
+          subPath: permissioned-nodes.json
+      volumes:
+      - name: smilo-permissioned-config
+        configMap:
+          name: smilo-permissioned-config
+          items:
+          - key: permissioned-nodes.json
+            path: permissioned-nodes.json
+      - name: genesis-config-persistent-storage
+        configMap:
+          name: genesis-config
+          items:
+          - key: genesis-geth.json
+            path: genesis-geth.json
+      - name: blackbox-config
+        configMap:
+          name: blackbox-config
+          items:
+          - key: blackbox-config.json.tmpl
+            path: blackbox-config.json.tmpl
+      - name: contracts-config
+        configMap:
+          name: contracts-config
+      - name: keystore-tm
+        configMap:
+          name: smilo-node1-tm-key-config
+          items:
+          - key: tm.pub
+            path: tm.pub
+          - key: tm.key
+            path: tm.key
+      - name: smilo-key-config-persistent-storage
+        configMap:
+          name: smilo-node1-account-key-config
+          items:
+          - key: key
+            path: key
+      - name: smilo-nodekey
+        configMap:
+          name: smilo-node1-nodekey-config
+          items:
+          - key: nodekey
+            path: nodekey
+      # PVC (configurable) https://kubernetes.io/docs/concepts/storage/persistent-volumes/#claims-as-volumes
+     
+      - name: smilo-persistent-storage
+        hostPath:
+          path: /var/lib/docker/geth-storage/smilo-node1
+      - name: tm-persistent-storage
+        hostPath:
+          path: /var/lib/docker/geth-storage/tm-smilo-node1
+      - name: smilo-logs-persistent-storage
+        hostPath:
+          path: /var/lib/docker/geth-storage/smilo-node1-logs
+      
+
+
+
+# The smilo deployment consists of
+# 1. the transaction manager / private tx container (blackbox)
+# 2. the smilo node container
+
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: smilo-node2-deployment
+  namespace: smilo-test
+spec:
+  strategy:
+    type: RollingUpdate
+  replicas: 1
+  template:
+    metadata:
+      name:  smilo-node2-deployment
+      labels:
+        app: kubernetes-smilo
+        tier: backend
+        name: smilo-node2-deployment
+    spec:
+      initContainers:
+      - name: smilo-genesis-init-container
+        image: quay.io/smilo/go-smilo:v1.9.2
+        command: [ "sh" ]
+        args:
+        - "-cx"
+        - "if [ ! -f $SMILO_DATA_DIR/genesis_created ]; then
+              /usr/local/bin/geth --datadir $SMILO_DATA_DIR init /etc/smilo/genesis/genesis-geth.json;
+              touch $SMILO_DATA_DIR/genesis_created;
+           fi;
+           cp -r /etc/smilo/sdata/contracts-tmp /etc/smilo/sdata/contracts;
+           chmod 755  /etc/smilo/sdata/contracts/runscript.sh;
+          "
+        env:
+          - name: SMILO_DATA_DIR
+            value: /etc/smilo/sdata/dd
+        volumeMounts:
+        - name: smilo-persistent-storage
+          mountPath:  /etc/smilo/sdata
+        - name: genesis-config-persistent-storage
+          mountPath: /etc/smilo/genesis/genesis-geth.json
+          subPath: genesis-geth.json
+        - name: contracts-config
+          mountPath: /etc/smilo/sdata/contracts-tmp
+          readOnly: false
+      containers:
+      - name: blackbox
+        image: quay.io/smilo/smilo-blackbox:v1.0.4
+        command: ["sh"]
+        args:
+        - "-cx"
+        - "chmod 600 $SMILO_HOME/tm/tm.key;
+           echo DDIR is $DDIR;
+           printenv;
+
+           BLACKBOX_VERSION=v1.0.4
+           echo \"Blackbox version: ${BLACKBOX_VERSION}\";
+
+           BLACKBOX_VERSION=\"${BLACKBOX_VERSION}-suffix\";
+
+           BLACKBOX_CONFIG_TYPE=;
+
+           if [ \"${BLACKBOX_VERSION}\" \\> \"0.8 \" ]; then BLACKBOX_CONFIG_TYPE=\"-enhanced\"; fi;
+           if [[ \"${BLACKBOX_VERSION}\" \\> \"0.9 \" ]]; then BLACKBOX_CONFIG_TYPE=\"-9.0\"; fi;
+
+           echo Config type ${BLACKBOX_CONFIG_TYPE};
+
+           CONFIG_TMPL=$(cat ${DDIR}/blackbox-config${BLACKBOX_CONFIG_TYPE}.json.tmpl);
+
+           CONFIG_WITH_OTHER_HOSTS=$(echo $CONFIG_TMPL |  sed \"s/%SMILO-NODE1_SERVICE_HOST%/$SMILO_NODE1_SERVICE_HOST/g\" |  sed \"s/%SMILO-NODE2_SERVICE_HOST%/$SMILO_NODE2_SERVICE_HOST/g\" |  sed \"s/%SMILO-NODE3_SERVICE_HOST%/$SMILO_NODE3_SERVICE_HOST/g\" |  sed \"s/%SMILO-NODE4_SERVICE_HOST%/$SMILO_NODE4_SERVICE_HOST/g\" |  sed \"s/%SMILO-NODE5_SERVICE_HOST%/$SMILO_NODE5_SERVICE_HOST/g\" |  sed \"s/%SMILO-NODE6_SERVICE_HOST%/$SMILO_NODE6_SERVICE_HOST/g\" |  sed \"s/%SMILO-NODE7_SERVICE_HOST%/$SMILO_NODE7_SERVICE_HOST/g\" ) ;
+           CONFIG_WITH_ALL_HOSTS=$(echo $CONFIG_WITH_OTHER_HOSTS | sed \"s/%THIS_SERVICE_HOST%/$SMILO_NODE2_SERVICE_HOST/g\");
+           PRIV_KEY=$(cat $DDIR/tm.key)
+           PUB_KEY=$(cat $DDIR/tm.pub)
+           CONFIG_FINAL=$(echo $CONFIG_WITH_ALL_HOSTS | sed \"s-%THIS_PRIV_KEY%-${PRIV_KEY}-g\" |  sed \"s-%THIS_PUB_KEY%-${PUB_KEY}-g\");
+           CONFIG_FINAL_9_0=$(echo $CONFIG_WITH_ALL_HOSTS | sed \"s-%THIS_PRIV_KEY%-${DDIR}/tm.key-g\" |  sed \"s-%THIS_PUB_KEY%-${DDIR}/tm.pub-g\");
+           if [[ \"${BLACKBOX_VERSION}\" \\> \"0.9 \" ]]; then CONFIG_FINAL=${CONFIG_FINAL_9_0}; fi;
+           echo $CONFIG_FINAL >  ${DDIR}/blackbox-config-with-hosts.json;
+           cat  ${DDIR}/blackbox-config-with-hosts.json;
+           /usr/local/bin/blackbox -configfile ${DDIR}/blackbox-config-with-hosts.json;
+        "
+        ports:
+          - containerPort: 9001
+        env:
+          - name: SMILO_HOME
+            value: /etc/smilo/sdata
+          - name: DDIR
+            value: /etc/smilo/sdata/tm
+        volumeMounts:
+        - name: smilo-logs-persistent-storage
+          mountPath: /etc/smilo/sdata/logs
+        - name: tm-persistent-storage
+          mountPath: /etc/smilo/sdata/tm
+        - name: smilo-persistent-storage
+          mountPath: /etc/smilo/sdata
+        - name: keystore-tm
+          mountPath: /etc/smilo/sdata/tm/tm.pub
+          subPath: tm.pub
+        - name: keystore-tm
+          mountPath: /etc/smilo/sdata/tm/tm.key
+          subPath: tm.key
+        - name: blackbox-config
+          mountPath: /etc/smilo/sdata/tm/blackbox-config.json.tmpl
+          subPath: blackbox-config.json.tmpl
+      - name: smilo
+        image: quay.io/smilo/go-smilo:v1.9.2
+        command: [ "sh" ]
+        # TODO: have to generate sed files
+        #       PERM_NODE_JSON=$(echo $PERM_NODE_TMPL | sed \"s/%SMILO-NODE01_SERVICE_HOST%/$SMILO_NODE01_SERVICE_HOST/g\" | sed \"s/%SMILO-NODE02_SERVICE_HOST%/$SMILO_NODE02_SERVICE_HOST/g\");
+        # sleep to give constellation some time to start up and discover the other nodes.
+        args:
+        - "-cx"
+        - "
+         
+           sleep 5;
+           PERM_NODE_TMPL=$(cat $SMILO_DATA_DIR/permissioned-nodes.json.tmpl);
+           PERM_NODE_JSON=$(echo $PERM_NODE_TMPL |  sed \"s/%SMILO-NODE1_SERVICE_HOST%/$SMILO_NODE1_SERVICE_HOST/g\" |  sed \"s/%SMILO-NODE2_SERVICE_HOST%/$SMILO_NODE2_SERVICE_HOST/g\" |  sed \"s/%SMILO-NODE3_SERVICE_HOST%/$SMILO_NODE3_SERVICE_HOST/g\" |  sed \"s/%SMILO-NODE4_SERVICE_HOST%/$SMILO_NODE4_SERVICE_HOST/g\" |  sed \"s/%SMILO-NODE5_SERVICE_HOST%/$SMILO_NODE5_SERVICE_HOST/g\" |  sed \"s/%SMILO-NODE6_SERVICE_HOST%/$SMILO_NODE6_SERVICE_HOST/g\" |  sed \"s/%SMILO-NODE7_SERVICE_HOST%/$SMILO_NODE7_SERVICE_HOST/g\" );
+           echo $PERM_NODE_JSON >  $SMILO_DATA_DIR/permissioned-nodes.json;
+           cp $SMILO_DATA_DIR/permissioned-nodes.json $SMILO_DATA_DIR/static-nodes.json;
+
+           rm -r /etc/smilo/sdata/contracts-tmp;
+
+           echo what in this dir;
+           ls  $SMILO_DATA_DIR;
+           cat /etc/smilo/genesis/genesis-geth.json;
+
+           chmod 644 $SMILO_DATA_DIR/keystore/key;
+           touch $SMILO_DATA_DIR/password.txt;
+
+           args=\" --smilobft.permissioned=true --smilobft.blockperiod 1 --smilobft.requesttimeout 10000 --syncmode full --mine --miner.gasprice 1 --miner.threads 1 --rpcapi admin,db,eth,debug,miner,net,shh,txpool,personal,web3,smilobft,sport  \";
+         
+           VAULT_IPC=/etc/smilo/sdata/tm/tm.ipc /usr/local/bin/geth \
+           --datadir $SMILO_DATA_DIR \
+           $args \
+           --verbosity 9 \
+           --allow-insecure-unlock \
+           --unlock 0 \
+           --rpc \
+           --rpcaddr 127.0.0.1 \
+           --rpcport 8546 \
+           --port 21000 \
+            \
+           --password $SMILO_DATA_DIR/password.txt 2>&1 | tee -a /etc/smilo/sdata/logs/smilo.log;"
+        ports:
+          - containerPort: 8546
+          - containerPort: 21000
+        env:
+        - name: PRIVATE_CONFIG
+          value: /etc/smilo/sdata/tm/tm.ipc
+        - name: SMILO_DATA_DIR
+          value: /etc/smilo/sdata/dd
+        - name: SMILO_HOME
+          value: /etc/smilo/sdata
+        - name: SHOME
+          value: /etc/smilo/sdata
+        - name: TM_HOME
+          value: /etc/smilo/sdata/tm/
+        volumeMounts:
+        - name: genesis-config-persistent-storage
+          mountPath: /etc/smilo/genesis/genesis-geth.json
+          subPath: genesis-geth.json
+        - name: smilo-persistent-storage
+          mountPath: /etc/smilo/sdata
+        - name: tm-persistent-storage
+          mountPath: /etc/smilo/sdata/tm
+        - name: smilo-key-config-persistent-storage
+          mountPath: /etc/smilo/sdata/dd/keystore/key
+          subPath: key
+        - name: smilo-logs-persistent-storage
+          mountPath: /etc/smilo/sdata/logs
+        - name: smilo-nodekey
+          mountPath: /etc/smilo/sdata/dd/geth/nodekey
+          subPath: nodekey
+        - name: smilo-permissioned-config
+          mountPath: /etc/smilo/sdata/dd/permissioned-nodes.json.tmpl
+          subPath: permissioned-nodes.json
+        - name: smilo-permissioned-config
+          mountPath: /etc/smilo/sdata/dd/static-nodes.json.tmpl
+          subPath: permissioned-nodes.json
+      volumes:
+      - name: smilo-permissioned-config
+        configMap:
+          name: smilo-permissioned-config
+          items:
+          - key: permissioned-nodes.json
+            path: permissioned-nodes.json
+      - name: genesis-config-persistent-storage
+        configMap:
+          name: genesis-config
+          items:
+          - key: genesis-geth.json
+            path: genesis-geth.json
+      - name: blackbox-config
+        configMap:
+          name: blackbox-config
+          items:
+          - key: blackbox-config.json.tmpl
+            path: blackbox-config.json.tmpl
+      - name: contracts-config
+        configMap:
+          name: contracts-config
+      - name: keystore-tm
+        configMap:
+          name: smilo-node2-tm-key-config
+          items:
+          - key: tm.pub
+            path: tm.pub
+          - key: tm.key
+            path: tm.key
+      - name: smilo-key-config-persistent-storage
+        configMap:
+          name: smilo-node2-account-key-config
+          items:
+          - key: key
+            path: key
+      - name: smilo-nodekey
+        configMap:
+          name: smilo-node2-nodekey-config
+          items:
+          - key: nodekey
+            path: nodekey
+      # PVC (configurable) https://kubernetes.io/docs/concepts/storage/persistent-volumes/#claims-as-volumes
+     
+      - name: smilo-persistent-storage
+        hostPath:
+          path: /var/lib/docker/geth-storage/smilo-node2
+      - name: tm-persistent-storage
+        hostPath:
+          path: /var/lib/docker/geth-storage/tm-smilo-node2
+      - name: smilo-logs-persistent-storage
+        hostPath:
+          path: /var/lib/docker/geth-storage/smilo-node2-logs
+      
+
+
+
+# The smilo deployment consists of
+# 1. the transaction manager / private tx container (blackbox)
+# 2. the smilo node container
+
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: smilo-node3-deployment
+  namespace: smilo-test
+spec:
+  strategy:
+    type: RollingUpdate
+  replicas: 1
+  template:
+    metadata:
+      name:  smilo-node3-deployment
+      labels:
+        app: kubernetes-smilo
+        tier: backend
+        name: smilo-node3-deployment
+    spec:
+      initContainers:
+      - name: smilo-genesis-init-container
+        image: quay.io/smilo/go-smilo:v1.9.2
+        command: [ "sh" ]
+        args:
+        - "-cx"
+        - "if [ ! -f $SMILO_DATA_DIR/genesis_created ]; then
+              /usr/local/bin/geth --datadir $SMILO_DATA_DIR init /etc/smilo/genesis/genesis-geth.json;
+              touch $SMILO_DATA_DIR/genesis_created;
+           fi;
+           cp -r /etc/smilo/sdata/contracts-tmp /etc/smilo/sdata/contracts;
+           chmod 755  /etc/smilo/sdata/contracts/runscript.sh;
+          "
+        env:
+          - name: SMILO_DATA_DIR
+            value: /etc/smilo/sdata/dd
+        volumeMounts:
+        - name: smilo-persistent-storage
+          mountPath:  /etc/smilo/sdata
+        - name: genesis-config-persistent-storage
+          mountPath: /etc/smilo/genesis/genesis-geth.json
+          subPath: genesis-geth.json
+        - name: contracts-config
+          mountPath: /etc/smilo/sdata/contracts-tmp
+          readOnly: false
+      containers:
+      - name: blackbox
+        image: quay.io/smilo/smilo-blackbox:v1.0.4
+        command: ["sh"]
+        args:
+        - "-cx"
+        - "chmod 600 $SMILO_HOME/tm/tm.key;
+           echo DDIR is $DDIR;
+           printenv;
+
+           BLACKBOX_VERSION=v1.0.4
+           echo \"Blackbox version: ${BLACKBOX_VERSION}\";
+
+           BLACKBOX_VERSION=\"${BLACKBOX_VERSION}-suffix\";
+
+           BLACKBOX_CONFIG_TYPE=;
+
+           if [ \"${BLACKBOX_VERSION}\" \\> \"0.8 \" ]; then BLACKBOX_CONFIG_TYPE=\"-enhanced\"; fi;
+           if [[ \"${BLACKBOX_VERSION}\" \\> \"0.9 \" ]]; then BLACKBOX_CONFIG_TYPE=\"-9.0\"; fi;
+
+           echo Config type ${BLACKBOX_CONFIG_TYPE};
+
+           CONFIG_TMPL=$(cat ${DDIR}/blackbox-config${BLACKBOX_CONFIG_TYPE}.json.tmpl);
+
+           CONFIG_WITH_OTHER_HOSTS=$(echo $CONFIG_TMPL |  sed \"s/%SMILO-NODE1_SERVICE_HOST%/$SMILO_NODE1_SERVICE_HOST/g\" |  sed \"s/%SMILO-NODE2_SERVICE_HOST%/$SMILO_NODE2_SERVICE_HOST/g\" |  sed \"s/%SMILO-NODE3_SERVICE_HOST%/$SMILO_NODE3_SERVICE_HOST/g\" |  sed \"s/%SMILO-NODE4_SERVICE_HOST%/$SMILO_NODE4_SERVICE_HOST/g\" |  sed \"s/%SMILO-NODE5_SERVICE_HOST%/$SMILO_NODE5_SERVICE_HOST/g\" |  sed \"s/%SMILO-NODE6_SERVICE_HOST%/$SMILO_NODE6_SERVICE_HOST/g\" |  sed \"s/%SMILO-NODE7_SERVICE_HOST%/$SMILO_NODE7_SERVICE_HOST/g\" ) ;
+           CONFIG_WITH_ALL_HOSTS=$(echo $CONFIG_WITH_OTHER_HOSTS | sed \"s/%THIS_SERVICE_HOST%/$SMILO_NODE3_SERVICE_HOST/g\");
+           PRIV_KEY=$(cat $DDIR/tm.key)
+           PUB_KEY=$(cat $DDIR/tm.pub)
+           CONFIG_FINAL=$(echo $CONFIG_WITH_ALL_HOSTS | sed \"s-%THIS_PRIV_KEY%-${PRIV_KEY}-g\" |  sed \"s-%THIS_PUB_KEY%-${PUB_KEY}-g\");
+           CONFIG_FINAL_9_0=$(echo $CONFIG_WITH_ALL_HOSTS | sed \"s-%THIS_PRIV_KEY%-${DDIR}/tm.key-g\" |  sed \"s-%THIS_PUB_KEY%-${DDIR}/tm.pub-g\");
+           if [[ \"${BLACKBOX_VERSION}\" \\> \"0.9 \" ]]; then CONFIG_FINAL=${CONFIG_FINAL_9_0}; fi;
+           echo $CONFIG_FINAL >  ${DDIR}/blackbox-config-with-hosts.json;
+           cat  ${DDIR}/blackbox-config-with-hosts.json;
+           /usr/local/bin/blackbox -configfile ${DDIR}/blackbox-config-with-hosts.json;
+        "
+        ports:
+          - containerPort: 9001
+        env:
+          - name: SMILO_HOME
+            value: /etc/smilo/sdata
+          - name: DDIR
+            value: /etc/smilo/sdata/tm
+        volumeMounts:
+        - name: smilo-logs-persistent-storage
+          mountPath: /etc/smilo/sdata/logs
+        - name: tm-persistent-storage
+          mountPath: /etc/smilo/sdata/tm
+        - name: smilo-persistent-storage
+          mountPath: /etc/smilo/sdata
+        - name: keystore-tm
+          mountPath: /etc/smilo/sdata/tm/tm.pub
+          subPath: tm.pub
+        - name: keystore-tm
+          mountPath: /etc/smilo/sdata/tm/tm.key
+          subPath: tm.key
+        - name: blackbox-config
+          mountPath: /etc/smilo/sdata/tm/blackbox-config.json.tmpl
+          subPath: blackbox-config.json.tmpl
+      - name: smilo
+        image: quay.io/smilo/go-smilo:v1.9.2
+        command: [ "sh" ]
+        # TODO: have to generate sed files
+        #       PERM_NODE_JSON=$(echo $PERM_NODE_TMPL | sed \"s/%SMILO-NODE01_SERVICE_HOST%/$SMILO_NODE01_SERVICE_HOST/g\" | sed \"s/%SMILO-NODE02_SERVICE_HOST%/$SMILO_NODE02_SERVICE_HOST/g\");
+        # sleep to give constellation some time to start up and discover the other nodes.
+        args:
+        - "-cx"
+        - "
+         
+           sleep 5;
+           PERM_NODE_TMPL=$(cat $SMILO_DATA_DIR/permissioned-nodes.json.tmpl);
+           PERM_NODE_JSON=$(echo $PERM_NODE_TMPL |  sed \"s/%SMILO-NODE1_SERVICE_HOST%/$SMILO_NODE1_SERVICE_HOST/g\" |  sed \"s/%SMILO-NODE2_SERVICE_HOST%/$SMILO_NODE2_SERVICE_HOST/g\" |  sed \"s/%SMILO-NODE3_SERVICE_HOST%/$SMILO_NODE3_SERVICE_HOST/g\" |  sed \"s/%SMILO-NODE4_SERVICE_HOST%/$SMILO_NODE4_SERVICE_HOST/g\" |  sed \"s/%SMILO-NODE5_SERVICE_HOST%/$SMILO_NODE5_SERVICE_HOST/g\" |  sed \"s/%SMILO-NODE6_SERVICE_HOST%/$SMILO_NODE6_SERVICE_HOST/g\" |  sed \"s/%SMILO-NODE7_SERVICE_HOST%/$SMILO_NODE7_SERVICE_HOST/g\" );
+           echo $PERM_NODE_JSON >  $SMILO_DATA_DIR/permissioned-nodes.json;
+           cp $SMILO_DATA_DIR/permissioned-nodes.json $SMILO_DATA_DIR/static-nodes.json;
+
+           rm -r /etc/smilo/sdata/contracts-tmp;
+
+           echo what in this dir;
+           ls  $SMILO_DATA_DIR;
+           cat /etc/smilo/genesis/genesis-geth.json;
+
+           chmod 644 $SMILO_DATA_DIR/keystore/key;
+           touch $SMILO_DATA_DIR/password.txt;
+
+           args=\" --smilobft.permissioned=true --smilobft.blockperiod 1 --smilobft.requesttimeout 10000 --syncmode full --mine --miner.gasprice 1 --miner.threads 1 --rpcapi admin,db,eth,debug,miner,net,shh,txpool,personal,web3,smilobft,sport  \";
+         
+           VAULT_IPC=/etc/smilo/sdata/tm/tm.ipc /usr/local/bin/geth \
+           --datadir $SMILO_DATA_DIR \
+           $args \
+           --verbosity 9 \
+           --allow-insecure-unlock \
+           --unlock 0 \
+           --rpc \
+           --rpcaddr 127.0.0.1 \
+           --rpcport 8546 \
+           --port 21000 \
+            \
+           --password $SMILO_DATA_DIR/password.txt 2>&1 | tee -a /etc/smilo/sdata/logs/smilo.log;"
+        ports:
+          - containerPort: 8546
+          - containerPort: 21000
+        env:
+        - name: PRIVATE_CONFIG
+          value: /etc/smilo/sdata/tm/tm.ipc
+        - name: SMILO_DATA_DIR
+          value: /etc/smilo/sdata/dd
+        - name: SMILO_HOME
+          value: /etc/smilo/sdata
+        - name: SHOME
+          value: /etc/smilo/sdata
+        - name: TM_HOME
+          value: /etc/smilo/sdata/tm/
+        volumeMounts:
+        - name: genesis-config-persistent-storage
+          mountPath: /etc/smilo/genesis/genesis-geth.json
+          subPath: genesis-geth.json
+        - name: smilo-persistent-storage
+          mountPath: /etc/smilo/sdata
+        - name: tm-persistent-storage
+          mountPath: /etc/smilo/sdata/tm
+        - name: smilo-key-config-persistent-storage
+          mountPath: /etc/smilo/sdata/dd/keystore/key
+          subPath: key
+        - name: smilo-logs-persistent-storage
+          mountPath: /etc/smilo/sdata/logs
+        - name: smilo-nodekey
+          mountPath: /etc/smilo/sdata/dd/geth/nodekey
+          subPath: nodekey
+        - name: smilo-permissioned-config
+          mountPath: /etc/smilo/sdata/dd/permissioned-nodes.json.tmpl
+          subPath: permissioned-nodes.json
+        - name: smilo-permissioned-config
+          mountPath: /etc/smilo/sdata/dd/static-nodes.json.tmpl
+          subPath: permissioned-nodes.json
+      volumes:
+      - name: smilo-permissioned-config
+        configMap:
+          name: smilo-permissioned-config
+          items:
+          - key: permissioned-nodes.json
+            path: permissioned-nodes.json
+      - name: genesis-config-persistent-storage
+        configMap:
+          name: genesis-config
+          items:
+          - key: genesis-geth.json
+            path: genesis-geth.json
+      - name: blackbox-config
+        configMap:
+          name: blackbox-config
+          items:
+          - key: blackbox-config.json.tmpl
+            path: blackbox-config.json.tmpl
+      - name: contracts-config
+        configMap:
+          name: contracts-config
+      - name: keystore-tm
+        configMap:
+          name: smilo-node3-tm-key-config
+          items:
+          - key: tm.pub
+            path: tm.pub
+          - key: tm.key
+            path: tm.key
+      - name: smilo-key-config-persistent-storage
+        configMap:
+          name: smilo-node3-account-key-config
+          items:
+          - key: key
+            path: key
+      - name: smilo-nodekey
+        configMap:
+          name: smilo-node3-nodekey-config
+          items:
+          - key: nodekey
+            path: nodekey
+      # PVC (configurable) https://kubernetes.io/docs/concepts/storage/persistent-volumes/#claims-as-volumes
+     
+      - name: smilo-persistent-storage
+        hostPath:
+          path: /var/lib/docker/geth-storage/smilo-node3
+      - name: tm-persistent-storage
+        hostPath:
+          path: /var/lib/docker/geth-storage/tm-smilo-node3
+      - name: smilo-logs-persistent-storage
+        hostPath:
+          path: /var/lib/docker/geth-storage/smilo-node3-logs
+      
+
+
+
+# The smilo deployment consists of
+# 1. the transaction manager / private tx container (blackbox)
+# 2. the smilo node container
+
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: smilo-node4-deployment
+  namespace: smilo-test
+spec:
+  strategy:
+    type: RollingUpdate
+  replicas: 1
+  template:
+    metadata:
+      name:  smilo-node4-deployment
+      labels:
+        app: kubernetes-smilo
+        tier: backend
+        name: smilo-node4-deployment
+    spec:
+      initContainers:
+      - name: smilo-genesis-init-container
+        image: quay.io/smilo/go-smilo:v1.9.2
+        command: [ "sh" ]
+        args:
+        - "-cx"
+        - "if [ ! -f $SMILO_DATA_DIR/genesis_created ]; then
+              /usr/local/bin/geth --datadir $SMILO_DATA_DIR init /etc/smilo/genesis/genesis-geth.json;
+              touch $SMILO_DATA_DIR/genesis_created;
+           fi;
+           cp -r /etc/smilo/sdata/contracts-tmp /etc/smilo/sdata/contracts;
+           chmod 755  /etc/smilo/sdata/contracts/runscript.sh;
+          "
+        env:
+          - name: SMILO_DATA_DIR
+            value: /etc/smilo/sdata/dd
+        volumeMounts:
+        - name: smilo-persistent-storage
+          mountPath:  /etc/smilo/sdata
+        - name: genesis-config-persistent-storage
+          mountPath: /etc/smilo/genesis/genesis-geth.json
+          subPath: genesis-geth.json
+        - name: contracts-config
+          mountPath: /etc/smilo/sdata/contracts-tmp
+          readOnly: false
+      containers:
+      - name: blackbox
+        image: quay.io/smilo/smilo-blackbox:v1.0.4
+        command: ["sh"]
+        args:
+        - "-cx"
+        - "chmod 600 $SMILO_HOME/tm/tm.key;
+           echo DDIR is $DDIR;
+           printenv;
+
+           BLACKBOX_VERSION=v1.0.4
+           echo \"Blackbox version: ${BLACKBOX_VERSION}\";
+
+           BLACKBOX_VERSION=\"${BLACKBOX_VERSION}-suffix\";
+
+           BLACKBOX_CONFIG_TYPE=;
+
+           if [ \"${BLACKBOX_VERSION}\" \\> \"0.8 \" ]; then BLACKBOX_CONFIG_TYPE=\"-enhanced\"; fi;
+           if [[ \"${BLACKBOX_VERSION}\" \\> \"0.9 \" ]]; then BLACKBOX_CONFIG_TYPE=\"-9.0\"; fi;
+
+           echo Config type ${BLACKBOX_CONFIG_TYPE};
+
+           CONFIG_TMPL=$(cat ${DDIR}/blackbox-config${BLACKBOX_CONFIG_TYPE}.json.tmpl);
+
+           CONFIG_WITH_OTHER_HOSTS=$(echo $CONFIG_TMPL |  sed \"s/%SMILO-NODE1_SERVICE_HOST%/$SMILO_NODE1_SERVICE_HOST/g\" |  sed \"s/%SMILO-NODE2_SERVICE_HOST%/$SMILO_NODE2_SERVICE_HOST/g\" |  sed \"s/%SMILO-NODE3_SERVICE_HOST%/$SMILO_NODE3_SERVICE_HOST/g\" |  sed \"s/%SMILO-NODE4_SERVICE_HOST%/$SMILO_NODE4_SERVICE_HOST/g\" |  sed \"s/%SMILO-NODE5_SERVICE_HOST%/$SMILO_NODE5_SERVICE_HOST/g\" |  sed \"s/%SMILO-NODE6_SERVICE_HOST%/$SMILO_NODE6_SERVICE_HOST/g\" |  sed \"s/%SMILO-NODE7_SERVICE_HOST%/$SMILO_NODE7_SERVICE_HOST/g\" ) ;
+           CONFIG_WITH_ALL_HOSTS=$(echo $CONFIG_WITH_OTHER_HOSTS | sed \"s/%THIS_SERVICE_HOST%/$SMILO_NODE4_SERVICE_HOST/g\");
+           PRIV_KEY=$(cat $DDIR/tm.key)
+           PUB_KEY=$(cat $DDIR/tm.pub)
+           CONFIG_FINAL=$(echo $CONFIG_WITH_ALL_HOSTS | sed \"s-%THIS_PRIV_KEY%-${PRIV_KEY}-g\" |  sed \"s-%THIS_PUB_KEY%-${PUB_KEY}-g\");
+           CONFIG_FINAL_9_0=$(echo $CONFIG_WITH_ALL_HOSTS | sed \"s-%THIS_PRIV_KEY%-${DDIR}/tm.key-g\" |  sed \"s-%THIS_PUB_KEY%-${DDIR}/tm.pub-g\");
+           if [[ \"${BLACKBOX_VERSION}\" \\> \"0.9 \" ]]; then CONFIG_FINAL=${CONFIG_FINAL_9_0}; fi;
+           echo $CONFIG_FINAL >  ${DDIR}/blackbox-config-with-hosts.json;
+           cat  ${DDIR}/blackbox-config-with-hosts.json;
+           /usr/local/bin/blackbox -configfile ${DDIR}/blackbox-config-with-hosts.json;
+        "
+        ports:
+          - containerPort: 9001
+        env:
+          - name: SMILO_HOME
+            value: /etc/smilo/sdata
+          - name: DDIR
+            value: /etc/smilo/sdata/tm
+        volumeMounts:
+        - name: smilo-logs-persistent-storage
+          mountPath: /etc/smilo/sdata/logs
+        - name: tm-persistent-storage
+          mountPath: /etc/smilo/sdata/tm
+        - name: smilo-persistent-storage
+          mountPath: /etc/smilo/sdata
+        - name: keystore-tm
+          mountPath: /etc/smilo/sdata/tm/tm.pub
+          subPath: tm.pub
+        - name: keystore-tm
+          mountPath: /etc/smilo/sdata/tm/tm.key
+          subPath: tm.key
+        - name: blackbox-config
+          mountPath: /etc/smilo/sdata/tm/blackbox-config.json.tmpl
+          subPath: blackbox-config.json.tmpl
+      - name: smilo
+        image: quay.io/smilo/go-smilo:v1.9.2
+        command: [ "sh" ]
+        # TODO: have to generate sed files
+        #       PERM_NODE_JSON=$(echo $PERM_NODE_TMPL | sed \"s/%SMILO-NODE01_SERVICE_HOST%/$SMILO_NODE01_SERVICE_HOST/g\" | sed \"s/%SMILO-NODE02_SERVICE_HOST%/$SMILO_NODE02_SERVICE_HOST/g\");
+        # sleep to give constellation some time to start up and discover the other nodes.
+        args:
+        - "-cx"
+        - "
+         
+           sleep 5;
+           PERM_NODE_TMPL=$(cat $SMILO_DATA_DIR/permissioned-nodes.json.tmpl);
+           PERM_NODE_JSON=$(echo $PERM_NODE_TMPL |  sed \"s/%SMILO-NODE1_SERVICE_HOST%/$SMILO_NODE1_SERVICE_HOST/g\" |  sed \"s/%SMILO-NODE2_SERVICE_HOST%/$SMILO_NODE2_SERVICE_HOST/g\" |  sed \"s/%SMILO-NODE3_SERVICE_HOST%/$SMILO_NODE3_SERVICE_HOST/g\" |  sed \"s/%SMILO-NODE4_SERVICE_HOST%/$SMILO_NODE4_SERVICE_HOST/g\" |  sed \"s/%SMILO-NODE5_SERVICE_HOST%/$SMILO_NODE5_SERVICE_HOST/g\" |  sed \"s/%SMILO-NODE6_SERVICE_HOST%/$SMILO_NODE6_SERVICE_HOST/g\" |  sed \"s/%SMILO-NODE7_SERVICE_HOST%/$SMILO_NODE7_SERVICE_HOST/g\" );
+           echo $PERM_NODE_JSON >  $SMILO_DATA_DIR/permissioned-nodes.json;
+           cp $SMILO_DATA_DIR/permissioned-nodes.json $SMILO_DATA_DIR/static-nodes.json;
+
+           rm -r /etc/smilo/sdata/contracts-tmp;
+
+           echo what in this dir;
+           ls  $SMILO_DATA_DIR;
+           cat /etc/smilo/genesis/genesis-geth.json;
+
+           chmod 644 $SMILO_DATA_DIR/keystore/key;
+           touch $SMILO_DATA_DIR/password.txt;
+
+           args=\" --smilobft.permissioned=true --smilobft.blockperiod 1 --smilobft.requesttimeout 10000 --syncmode full --mine --miner.gasprice 1 --miner.threads 1 --rpcapi admin,db,eth,debug,miner,net,shh,txpool,personal,web3,smilobft,sport  \";
+         
+           VAULT_IPC=/etc/smilo/sdata/tm/tm.ipc /usr/local/bin/geth \
+           --datadir $SMILO_DATA_DIR \
+           $args \
+           --verbosity 9 \
+           --allow-insecure-unlock \
+           --unlock 0 \
+           --rpc \
+           --rpcaddr 127.0.0.1 \
+           --rpcport 8546 \
+           --port 21000 \
+            \
+           --password $SMILO_DATA_DIR/password.txt 2>&1 | tee -a /etc/smilo/sdata/logs/smilo.log;"
+        ports:
+          - containerPort: 8546
+          - containerPort: 21000
+        env:
+        - name: PRIVATE_CONFIG
+          value: /etc/smilo/sdata/tm/tm.ipc
+        - name: SMILO_DATA_DIR
+          value: /etc/smilo/sdata/dd
+        - name: SMILO_HOME
+          value: /etc/smilo/sdata
+        - name: SHOME
+          value: /etc/smilo/sdata
+        - name: TM_HOME
+          value: /etc/smilo/sdata/tm/
+        volumeMounts:
+        - name: genesis-config-persistent-storage
+          mountPath: /etc/smilo/genesis/genesis-geth.json
+          subPath: genesis-geth.json
+        - name: smilo-persistent-storage
+          mountPath: /etc/smilo/sdata
+        - name: tm-persistent-storage
+          mountPath: /etc/smilo/sdata/tm
+        - name: smilo-key-config-persistent-storage
+          mountPath: /etc/smilo/sdata/dd/keystore/key
+          subPath: key
+        - name: smilo-logs-persistent-storage
+          mountPath: /etc/smilo/sdata/logs
+        - name: smilo-nodekey
+          mountPath: /etc/smilo/sdata/dd/geth/nodekey
+          subPath: nodekey
+        - name: smilo-permissioned-config
+          mountPath: /etc/smilo/sdata/dd/permissioned-nodes.json.tmpl
+          subPath: permissioned-nodes.json
+        - name: smilo-permissioned-config
+          mountPath: /etc/smilo/sdata/dd/static-nodes.json.tmpl
+          subPath: permissioned-nodes.json
+      volumes:
+      - name: smilo-permissioned-config
+        configMap:
+          name: smilo-permissioned-config
+          items:
+          - key: permissioned-nodes.json
+            path: permissioned-nodes.json
+      - name: genesis-config-persistent-storage
+        configMap:
+          name: genesis-config
+          items:
+          - key: genesis-geth.json
+            path: genesis-geth.json
+      - name: blackbox-config
+        configMap:
+          name: blackbox-config
+          items:
+          - key: blackbox-config.json.tmpl
+            path: blackbox-config.json.tmpl
+      - name: contracts-config
+        configMap:
+          name: contracts-config
+      - name: keystore-tm
+        configMap:
+          name: smilo-node4-tm-key-config
+          items:
+          - key: tm.pub
+            path: tm.pub
+          - key: tm.key
+            path: tm.key
+      - name: smilo-key-config-persistent-storage
+        configMap:
+          name: smilo-node4-account-key-config
+          items:
+          - key: key
+            path: key
+      - name: smilo-nodekey
+        configMap:
+          name: smilo-node4-nodekey-config
+          items:
+          - key: nodekey
+            path: nodekey
+      # PVC (configurable) https://kubernetes.io/docs/concepts/storage/persistent-volumes/#claims-as-volumes
+     
+      - name: smilo-persistent-storage
+        hostPath:
+          path: /var/lib/docker/geth-storage/smilo-node4
+      - name: tm-persistent-storage
+        hostPath:
+          path: /var/lib/docker/geth-storage/tm-smilo-node4
+      - name: smilo-logs-persistent-storage
+        hostPath:
+          path: /var/lib/docker/geth-storage/smilo-node4-logs
+      
+
+
+
+# The smilo deployment consists of
+# 1. the transaction manager / private tx container (blackbox)
+# 2. the smilo node container
+
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: smilo-node5-deployment
+  namespace: smilo-test
+spec:
+  strategy:
+    type: RollingUpdate
+  replicas: 1
+  template:
+    metadata:
+      name:  smilo-node5-deployment
+      labels:
+        app: kubernetes-smilo
+        tier: backend
+        name: smilo-node5-deployment
+    spec:
+      initContainers:
+      - name: smilo-genesis-init-container
+        image: quay.io/smilo/go-smilo:v1.9.2
+        command: [ "sh" ]
+        args:
+        - "-cx"
+        - "if [ ! -f $SMILO_DATA_DIR/genesis_created ]; then
+              /usr/local/bin/geth --datadir $SMILO_DATA_DIR init /etc/smilo/genesis/genesis-geth.json;
+              touch $SMILO_DATA_DIR/genesis_created;
+           fi;
+           cp -r /etc/smilo/sdata/contracts-tmp /etc/smilo/sdata/contracts;
+           chmod 755  /etc/smilo/sdata/contracts/runscript.sh;
+          "
+        env:
+          - name: SMILO_DATA_DIR
+            value: /etc/smilo/sdata/dd
+        volumeMounts:
+        - name: smilo-persistent-storage
+          mountPath:  /etc/smilo/sdata
+        - name: genesis-config-persistent-storage
+          mountPath: /etc/smilo/genesis/genesis-geth.json
+          subPath: genesis-geth.json
+        - name: contracts-config
+          mountPath: /etc/smilo/sdata/contracts-tmp
+          readOnly: false
+      containers:
+      - name: blackbox
+        image: quay.io/smilo/smilo-blackbox:v1.0.4
+        command: ["sh"]
+        args:
+        - "-cx"
+        - "chmod 600 $SMILO_HOME/tm/tm.key;
+           echo DDIR is $DDIR;
+           printenv;
+
+           BLACKBOX_VERSION=v1.0.4
+           echo \"Blackbox version: ${BLACKBOX_VERSION}\";
+
+           BLACKBOX_VERSION=\"${BLACKBOX_VERSION}-suffix\";
+
+           BLACKBOX_CONFIG_TYPE=;
+
+           if [ \"${BLACKBOX_VERSION}\" \\> \"0.8 \" ]; then BLACKBOX_CONFIG_TYPE=\"-enhanced\"; fi;
+           if [[ \"${BLACKBOX_VERSION}\" \\> \"0.9 \" ]]; then BLACKBOX_CONFIG_TYPE=\"-9.0\"; fi;
+
+           echo Config type ${BLACKBOX_CONFIG_TYPE};
+
+           CONFIG_TMPL=$(cat ${DDIR}/blackbox-config${BLACKBOX_CONFIG_TYPE}.json.tmpl);
+
+           CONFIG_WITH_OTHER_HOSTS=$(echo $CONFIG_TMPL |  sed \"s/%SMILO-NODE1_SERVICE_HOST%/$SMILO_NODE1_SERVICE_HOST/g\" |  sed \"s/%SMILO-NODE2_SERVICE_HOST%/$SMILO_NODE2_SERVICE_HOST/g\" |  sed \"s/%SMILO-NODE3_SERVICE_HOST%/$SMILO_NODE3_SERVICE_HOST/g\" |  sed \"s/%SMILO-NODE4_SERVICE_HOST%/$SMILO_NODE4_SERVICE_HOST/g\" |  sed \"s/%SMILO-NODE5_SERVICE_HOST%/$SMILO_NODE5_SERVICE_HOST/g\" |  sed \"s/%SMILO-NODE6_SERVICE_HOST%/$SMILO_NODE6_SERVICE_HOST/g\" |  sed \"s/%SMILO-NODE7_SERVICE_HOST%/$SMILO_NODE7_SERVICE_HOST/g\" ) ;
+           CONFIG_WITH_ALL_HOSTS=$(echo $CONFIG_WITH_OTHER_HOSTS | sed \"s/%THIS_SERVICE_HOST%/$SMILO_NODE5_SERVICE_HOST/g\");
+           PRIV_KEY=$(cat $DDIR/tm.key)
+           PUB_KEY=$(cat $DDIR/tm.pub)
+           CONFIG_FINAL=$(echo $CONFIG_WITH_ALL_HOSTS | sed \"s-%THIS_PRIV_KEY%-${PRIV_KEY}-g\" |  sed \"s-%THIS_PUB_KEY%-${PUB_KEY}-g\");
+           CONFIG_FINAL_9_0=$(echo $CONFIG_WITH_ALL_HOSTS | sed \"s-%THIS_PRIV_KEY%-${DDIR}/tm.key-g\" |  sed \"s-%THIS_PUB_KEY%-${DDIR}/tm.pub-g\");
+           if [[ \"${BLACKBOX_VERSION}\" \\> \"0.9 \" ]]; then CONFIG_FINAL=${CONFIG_FINAL_9_0}; fi;
+           echo $CONFIG_FINAL >  ${DDIR}/blackbox-config-with-hosts.json;
+           cat  ${DDIR}/blackbox-config-with-hosts.json;
+           /usr/local/bin/blackbox -configfile ${DDIR}/blackbox-config-with-hosts.json;
+        "
+        ports:
+          - containerPort: 9001
+        env:
+          - name: SMILO_HOME
+            value: /etc/smilo/sdata
+          - name: DDIR
+            value: /etc/smilo/sdata/tm
+        volumeMounts:
+        - name: smilo-logs-persistent-storage
+          mountPath: /etc/smilo/sdata/logs
+        - name: tm-persistent-storage
+          mountPath: /etc/smilo/sdata/tm
+        - name: smilo-persistent-storage
+          mountPath: /etc/smilo/sdata
+        - name: keystore-tm
+          mountPath: /etc/smilo/sdata/tm/tm.pub
+          subPath: tm.pub
+        - name: keystore-tm
+          mountPath: /etc/smilo/sdata/tm/tm.key
+          subPath: tm.key
+        - name: blackbox-config
+          mountPath: /etc/smilo/sdata/tm/blackbox-config.json.tmpl
+          subPath: blackbox-config.json.tmpl
+      - name: smilo
+        image: quay.io/smilo/go-smilo:v1.9.2
+        command: [ "sh" ]
+        # TODO: have to generate sed files
+        #       PERM_NODE_JSON=$(echo $PERM_NODE_TMPL | sed \"s/%SMILO-NODE01_SERVICE_HOST%/$SMILO_NODE01_SERVICE_HOST/g\" | sed \"s/%SMILO-NODE02_SERVICE_HOST%/$SMILO_NODE02_SERVICE_HOST/g\");
+        # sleep to give constellation some time to start up and discover the other nodes.
+        args:
+        - "-cx"
+        - "
+         
+           sleep 5;
+           PERM_NODE_TMPL=$(cat $SMILO_DATA_DIR/permissioned-nodes.json.tmpl);
+           PERM_NODE_JSON=$(echo $PERM_NODE_TMPL |  sed \"s/%SMILO-NODE1_SERVICE_HOST%/$SMILO_NODE1_SERVICE_HOST/g\" |  sed \"s/%SMILO-NODE2_SERVICE_HOST%/$SMILO_NODE2_SERVICE_HOST/g\" |  sed \"s/%SMILO-NODE3_SERVICE_HOST%/$SMILO_NODE3_SERVICE_HOST/g\" |  sed \"s/%SMILO-NODE4_SERVICE_HOST%/$SMILO_NODE4_SERVICE_HOST/g\" |  sed \"s/%SMILO-NODE5_SERVICE_HOST%/$SMILO_NODE5_SERVICE_HOST/g\" |  sed \"s/%SMILO-NODE6_SERVICE_HOST%/$SMILO_NODE6_SERVICE_HOST/g\" |  sed \"s/%SMILO-NODE7_SERVICE_HOST%/$SMILO_NODE7_SERVICE_HOST/g\" );
+           echo $PERM_NODE_JSON >  $SMILO_DATA_DIR/permissioned-nodes.json;
+           cp $SMILO_DATA_DIR/permissioned-nodes.json $SMILO_DATA_DIR/static-nodes.json;
+
+           rm -r /etc/smilo/sdata/contracts-tmp;
+
+           echo what in this dir;
+           ls  $SMILO_DATA_DIR;
+           cat /etc/smilo/genesis/genesis-geth.json;
+
+           chmod 644 $SMILO_DATA_DIR/keystore/key;
+           touch $SMILO_DATA_DIR/password.txt;
+
+           args=\" --smilobft.permissioned=true --smilobft.blockperiod 1 --smilobft.requesttimeout 10000 --syncmode full --mine --miner.gasprice 1 --miner.threads 1 --rpcapi admin,db,eth,debug,miner,net,shh,txpool,personal,web3,smilobft,sport  \";
+         
+           VAULT_IPC=/etc/smilo/sdata/tm/tm.ipc /usr/local/bin/geth \
+           --datadir $SMILO_DATA_DIR \
+           $args \
+           --verbosity 9 \
+           --allow-insecure-unlock \
+           --unlock 0 \
+           --rpc \
+           --rpcaddr 127.0.0.1 \
+           --rpcport 8546 \
+           --port 21000 \
+            \
+           --password $SMILO_DATA_DIR/password.txt 2>&1 | tee -a /etc/smilo/sdata/logs/smilo.log;"
+        ports:
+          - containerPort: 8546
+          - containerPort: 21000
+        env:
+        - name: PRIVATE_CONFIG
+          value: /etc/smilo/sdata/tm/tm.ipc
+        - name: SMILO_DATA_DIR
+          value: /etc/smilo/sdata/dd
+        - name: SMILO_HOME
+          value: /etc/smilo/sdata
+        - name: SHOME
+          value: /etc/smilo/sdata
+        - name: TM_HOME
+          value: /etc/smilo/sdata/tm/
+        volumeMounts:
+        - name: genesis-config-persistent-storage
+          mountPath: /etc/smilo/genesis/genesis-geth.json
+          subPath: genesis-geth.json
+        - name: smilo-persistent-storage
+          mountPath: /etc/smilo/sdata
+        - name: tm-persistent-storage
+          mountPath: /etc/smilo/sdata/tm
+        - name: smilo-key-config-persistent-storage
+          mountPath: /etc/smilo/sdata/dd/keystore/key
+          subPath: key
+        - name: smilo-logs-persistent-storage
+          mountPath: /etc/smilo/sdata/logs
+        - name: smilo-nodekey
+          mountPath: /etc/smilo/sdata/dd/geth/nodekey
+          subPath: nodekey
+        - name: smilo-permissioned-config
+          mountPath: /etc/smilo/sdata/dd/permissioned-nodes.json.tmpl
+          subPath: permissioned-nodes.json
+        - name: smilo-permissioned-config
+          mountPath: /etc/smilo/sdata/dd/static-nodes.json.tmpl
+          subPath: permissioned-nodes.json
+      volumes:
+      - name: smilo-permissioned-config
+        configMap:
+          name: smilo-permissioned-config
+          items:
+          - key: permissioned-nodes.json
+            path: permissioned-nodes.json
+      - name: genesis-config-persistent-storage
+        configMap:
+          name: genesis-config
+          items:
+          - key: genesis-geth.json
+            path: genesis-geth.json
+      - name: blackbox-config
+        configMap:
+          name: blackbox-config
+          items:
+          - key: blackbox-config.json.tmpl
+            path: blackbox-config.json.tmpl
+      - name: contracts-config
+        configMap:
+          name: contracts-config
+      - name: keystore-tm
+        configMap:
+          name: smilo-node5-tm-key-config
+          items:
+          - key: tm.pub
+            path: tm.pub
+          - key: tm.key
+            path: tm.key
+      - name: smilo-key-config-persistent-storage
+        configMap:
+          name: smilo-node5-account-key-config
+          items:
+          - key: key
+            path: key
+      - name: smilo-nodekey
+        configMap:
+          name: smilo-node5-nodekey-config
+          items:
+          - key: nodekey
+            path: nodekey
+      # PVC (configurable) https://kubernetes.io/docs/concepts/storage/persistent-volumes/#claims-as-volumes
+     
+      - name: smilo-persistent-storage
+        hostPath:
+          path: /var/lib/docker/geth-storage/smilo-node5
+      - name: tm-persistent-storage
+        hostPath:
+          path: /var/lib/docker/geth-storage/tm-smilo-node5
+      - name: smilo-logs-persistent-storage
+        hostPath:
+          path: /var/lib/docker/geth-storage/smilo-node5-logs
+      
+
+
+
+# The smilo deployment consists of
+# 1. the transaction manager / private tx container (blackbox)
+# 2. the smilo node container
+
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: smilo-node6-deployment
+  namespace: smilo-test
+spec:
+  strategy:
+    type: RollingUpdate
+  replicas: 1
+  template:
+    metadata:
+      name:  smilo-node6-deployment
+      labels:
+        app: kubernetes-smilo
+        tier: backend
+        name: smilo-node6-deployment
+    spec:
+      initContainers:
+      - name: smilo-genesis-init-container
+        image: quay.io/smilo/go-smilo:v1.9.2
+        command: [ "sh" ]
+        args:
+        - "-cx"
+        - "if [ ! -f $SMILO_DATA_DIR/genesis_created ]; then
+              /usr/local/bin/geth --datadir $SMILO_DATA_DIR init /etc/smilo/genesis/genesis-geth.json;
+              touch $SMILO_DATA_DIR/genesis_created;
+           fi;
+           cp -r /etc/smilo/sdata/contracts-tmp /etc/smilo/sdata/contracts;
+           chmod 755  /etc/smilo/sdata/contracts/runscript.sh;
+          "
+        env:
+          - name: SMILO_DATA_DIR
+            value: /etc/smilo/sdata/dd
+        volumeMounts:
+        - name: smilo-persistent-storage
+          mountPath:  /etc/smilo/sdata
+        - name: genesis-config-persistent-storage
+          mountPath: /etc/smilo/genesis/genesis-geth.json
+          subPath: genesis-geth.json
+        - name: contracts-config
+          mountPath: /etc/smilo/sdata/contracts-tmp
+          readOnly: false
+      containers:
+      - name: blackbox
+        image: quay.io/smilo/smilo-blackbox:v1.0.4
+        command: ["sh"]
+        args:
+        - "-cx"
+        - "chmod 600 $SMILO_HOME/tm/tm.key;
+           echo DDIR is $DDIR;
+           printenv;
+
+           BLACKBOX_VERSION=v1.0.4
+           echo \"Blackbox version: ${BLACKBOX_VERSION}\";
+
+           BLACKBOX_VERSION=\"${BLACKBOX_VERSION}-suffix\";
+
+           BLACKBOX_CONFIG_TYPE=;
+
+           if [ \"${BLACKBOX_VERSION}\" \\> \"0.8 \" ]; then BLACKBOX_CONFIG_TYPE=\"-enhanced\"; fi;
+           if [[ \"${BLACKBOX_VERSION}\" \\> \"0.9 \" ]]; then BLACKBOX_CONFIG_TYPE=\"-9.0\"; fi;
+
+           echo Config type ${BLACKBOX_CONFIG_TYPE};
+
+           CONFIG_TMPL=$(cat ${DDIR}/blackbox-config${BLACKBOX_CONFIG_TYPE}.json.tmpl);
+
+           CONFIG_WITH_OTHER_HOSTS=$(echo $CONFIG_TMPL |  sed \"s/%SMILO-NODE1_SERVICE_HOST%/$SMILO_NODE1_SERVICE_HOST/g\" |  sed \"s/%SMILO-NODE2_SERVICE_HOST%/$SMILO_NODE2_SERVICE_HOST/g\" |  sed \"s/%SMILO-NODE3_SERVICE_HOST%/$SMILO_NODE3_SERVICE_HOST/g\" |  sed \"s/%SMILO-NODE4_SERVICE_HOST%/$SMILO_NODE4_SERVICE_HOST/g\" |  sed \"s/%SMILO-NODE5_SERVICE_HOST%/$SMILO_NODE5_SERVICE_HOST/g\" |  sed \"s/%SMILO-NODE6_SERVICE_HOST%/$SMILO_NODE6_SERVICE_HOST/g\" |  sed \"s/%SMILO-NODE7_SERVICE_HOST%/$SMILO_NODE7_SERVICE_HOST/g\" ) ;
+           CONFIG_WITH_ALL_HOSTS=$(echo $CONFIG_WITH_OTHER_HOSTS | sed \"s/%THIS_SERVICE_HOST%/$SMILO_NODE6_SERVICE_HOST/g\");
+           PRIV_KEY=$(cat $DDIR/tm.key)
+           PUB_KEY=$(cat $DDIR/tm.pub)
+           CONFIG_FINAL=$(echo $CONFIG_WITH_ALL_HOSTS | sed \"s-%THIS_PRIV_KEY%-${PRIV_KEY}-g\" |  sed \"s-%THIS_PUB_KEY%-${PUB_KEY}-g\");
+           CONFIG_FINAL_9_0=$(echo $CONFIG_WITH_ALL_HOSTS | sed \"s-%THIS_PRIV_KEY%-${DDIR}/tm.key-g\" |  sed \"s-%THIS_PUB_KEY%-${DDIR}/tm.pub-g\");
+           if [[ \"${BLACKBOX_VERSION}\" \\> \"0.9 \" ]]; then CONFIG_FINAL=${CONFIG_FINAL_9_0}; fi;
+           echo $CONFIG_FINAL >  ${DDIR}/blackbox-config-with-hosts.json;
+           cat  ${DDIR}/blackbox-config-with-hosts.json;
+           /usr/local/bin/blackbox -configfile ${DDIR}/blackbox-config-with-hosts.json;
+        "
+        ports:
+          - containerPort: 9001
+        env:
+          - name: SMILO_HOME
+            value: /etc/smilo/sdata
+          - name: DDIR
+            value: /etc/smilo/sdata/tm
+        volumeMounts:
+        - name: smilo-logs-persistent-storage
+          mountPath: /etc/smilo/sdata/logs
+        - name: tm-persistent-storage
+          mountPath: /etc/smilo/sdata/tm
+        - name: smilo-persistent-storage
+          mountPath: /etc/smilo/sdata
+        - name: keystore-tm
+          mountPath: /etc/smilo/sdata/tm/tm.pub
+          subPath: tm.pub
+        - name: keystore-tm
+          mountPath: /etc/smilo/sdata/tm/tm.key
+          subPath: tm.key
+        - name: blackbox-config
+          mountPath: /etc/smilo/sdata/tm/blackbox-config.json.tmpl
+          subPath: blackbox-config.json.tmpl
+      - name: smilo
+        image: quay.io/smilo/go-smilo:v1.9.2
+        command: [ "sh" ]
+        # TODO: have to generate sed files
+        #       PERM_NODE_JSON=$(echo $PERM_NODE_TMPL | sed \"s/%SMILO-NODE01_SERVICE_HOST%/$SMILO_NODE01_SERVICE_HOST/g\" | sed \"s/%SMILO-NODE02_SERVICE_HOST%/$SMILO_NODE02_SERVICE_HOST/g\");
+        # sleep to give constellation some time to start up and discover the other nodes.
+        args:
+        - "-cx"
+        - "
+         
+           sleep 5;
+           PERM_NODE_TMPL=$(cat $SMILO_DATA_DIR/permissioned-nodes.json.tmpl);
+           PERM_NODE_JSON=$(echo $PERM_NODE_TMPL |  sed \"s/%SMILO-NODE1_SERVICE_HOST%/$SMILO_NODE1_SERVICE_HOST/g\" |  sed \"s/%SMILO-NODE2_SERVICE_HOST%/$SMILO_NODE2_SERVICE_HOST/g\" |  sed \"s/%SMILO-NODE3_SERVICE_HOST%/$SMILO_NODE3_SERVICE_HOST/g\" |  sed \"s/%SMILO-NODE4_SERVICE_HOST%/$SMILO_NODE4_SERVICE_HOST/g\" |  sed \"s/%SMILO-NODE5_SERVICE_HOST%/$SMILO_NODE5_SERVICE_HOST/g\" |  sed \"s/%SMILO-NODE6_SERVICE_HOST%/$SMILO_NODE6_SERVICE_HOST/g\" |  sed \"s/%SMILO-NODE7_SERVICE_HOST%/$SMILO_NODE7_SERVICE_HOST/g\" );
+           echo $PERM_NODE_JSON >  $SMILO_DATA_DIR/permissioned-nodes.json;
+           cp $SMILO_DATA_DIR/permissioned-nodes.json $SMILO_DATA_DIR/static-nodes.json;
+
+           rm -r /etc/smilo/sdata/contracts-tmp;
+
+           echo what in this dir;
+           ls  $SMILO_DATA_DIR;
+           cat /etc/smilo/genesis/genesis-geth.json;
+
+           chmod 644 $SMILO_DATA_DIR/keystore/key;
+           touch $SMILO_DATA_DIR/password.txt;
+
+           args=\" --smilobft.permissioned=true --smilobft.blockperiod 1 --smilobft.requesttimeout 10000 --syncmode full --mine --miner.gasprice 1 --miner.threads 1 --rpcapi admin,db,eth,debug,miner,net,shh,txpool,personal,web3,smilobft,sport  \";
+         
+           VAULT_IPC=/etc/smilo/sdata/tm/tm.ipc /usr/local/bin/geth \
+           --datadir $SMILO_DATA_DIR \
+           $args \
+           --verbosity 9 \
+           --allow-insecure-unlock \
+           --unlock 0 \
+           --rpc \
+           --rpcaddr 127.0.0.1 \
+           --rpcport 8546 \
+           --port 21000 \
+            \
+           --password $SMILO_DATA_DIR/password.txt 2>&1 | tee -a /etc/smilo/sdata/logs/smilo.log;"
+        ports:
+          - containerPort: 8546
+          - containerPort: 21000
+        env:
+        - name: PRIVATE_CONFIG
+          value: /etc/smilo/sdata/tm/tm.ipc
+        - name: SMILO_DATA_DIR
+          value: /etc/smilo/sdata/dd
+        - name: SMILO_HOME
+          value: /etc/smilo/sdata
+        - name: SHOME
+          value: /etc/smilo/sdata
+        - name: TM_HOME
+          value: /etc/smilo/sdata/tm/
+        volumeMounts:
+        - name: genesis-config-persistent-storage
+          mountPath: /etc/smilo/genesis/genesis-geth.json
+          subPath: genesis-geth.json
+        - name: smilo-persistent-storage
+          mountPath: /etc/smilo/sdata
+        - name: tm-persistent-storage
+          mountPath: /etc/smilo/sdata/tm
+        - name: smilo-key-config-persistent-storage
+          mountPath: /etc/smilo/sdata/dd/keystore/key
+          subPath: key
+        - name: smilo-logs-persistent-storage
+          mountPath: /etc/smilo/sdata/logs
+        - name: smilo-nodekey
+          mountPath: /etc/smilo/sdata/dd/geth/nodekey
+          subPath: nodekey
+        - name: smilo-permissioned-config
+          mountPath: /etc/smilo/sdata/dd/permissioned-nodes.json.tmpl
+          subPath: permissioned-nodes.json
+        - name: smilo-permissioned-config
+          mountPath: /etc/smilo/sdata/dd/static-nodes.json.tmpl
+          subPath: permissioned-nodes.json
+      volumes:
+      - name: smilo-permissioned-config
+        configMap:
+          name: smilo-permissioned-config
+          items:
+          - key: permissioned-nodes.json
+            path: permissioned-nodes.json
+      - name: genesis-config-persistent-storage
+        configMap:
+          name: genesis-config
+          items:
+          - key: genesis-geth.json
+            path: genesis-geth.json
+      - name: blackbox-config
+        configMap:
+          name: blackbox-config
+          items:
+          - key: blackbox-config.json.tmpl
+            path: blackbox-config.json.tmpl
+      - name: contracts-config
+        configMap:
+          name: contracts-config
+      - name: keystore-tm
+        configMap:
+          name: smilo-node6-tm-key-config
+          items:
+          - key: tm.pub
+            path: tm.pub
+          - key: tm.key
+            path: tm.key
+      - name: smilo-key-config-persistent-storage
+        configMap:
+          name: smilo-node6-account-key-config
+          items:
+          - key: key
+            path: key
+      - name: smilo-nodekey
+        configMap:
+          name: smilo-node6-nodekey-config
+          items:
+          - key: nodekey
+            path: nodekey
+      # PVC (configurable) https://kubernetes.io/docs/concepts/storage/persistent-volumes/#claims-as-volumes
+     
+      - name: smilo-persistent-storage
+        hostPath:
+          path: /var/lib/docker/geth-storage/smilo-node6
+      - name: tm-persistent-storage
+        hostPath:
+          path: /var/lib/docker/geth-storage/tm-smilo-node6
+      - name: smilo-logs-persistent-storage
+        hostPath:
+          path: /var/lib/docker/geth-storage/smilo-node6-logs
+      
+
+
+
+# The smilo deployment consists of
+# 1. the transaction manager / private tx container (blackbox)
+# 2. the smilo node container
+
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: smilo-node7-deployment
+  namespace: smilo-test
+spec:
+  strategy:
+    type: RollingUpdate
+  replicas: 1
+  template:
+    metadata:
+      name:  smilo-node7-deployment
+      labels:
+        app: kubernetes-smilo
+        tier: backend
+        name: smilo-node7-deployment
+    spec:
+      initContainers:
+      - name: smilo-genesis-init-container
+        image: quay.io/smilo/go-smilo:v1.9.2
+        command: [ "sh" ]
+        args:
+        - "-cx"
+        - "if [ ! -f $SMILO_DATA_DIR/genesis_created ]; then
+              /usr/local/bin/geth --datadir $SMILO_DATA_DIR init /etc/smilo/genesis/genesis-geth.json;
+              touch $SMILO_DATA_DIR/genesis_created;
+           fi;
+           cp -r /etc/smilo/sdata/contracts-tmp /etc/smilo/sdata/contracts;
+           chmod 755  /etc/smilo/sdata/contracts/runscript.sh;
+          "
+        env:
+          - name: SMILO_DATA_DIR
+            value: /etc/smilo/sdata/dd
+        volumeMounts:
+        - name: smilo-persistent-storage
+          mountPath:  /etc/smilo/sdata
+        - name: genesis-config-persistent-storage
+          mountPath: /etc/smilo/genesis/genesis-geth.json
+          subPath: genesis-geth.json
+        - name: contracts-config
+          mountPath: /etc/smilo/sdata/contracts-tmp
+          readOnly: false
+      containers:
+      - name: blackbox
+        image: quay.io/smilo/smilo-blackbox:v1.0.4
+        command: ["sh"]
+        args:
+        - "-cx"
+        - "chmod 600 $SMILO_HOME/tm/tm.key;
+           echo DDIR is $DDIR;
+           printenv;
+
+           BLACKBOX_VERSION=v1.0.4
+           echo \"Blackbox version: ${BLACKBOX_VERSION}\";
+
+           BLACKBOX_VERSION=\"${BLACKBOX_VERSION}-suffix\";
+
+           BLACKBOX_CONFIG_TYPE=;
+
+           if [ \"${BLACKBOX_VERSION}\" \\> \"0.8 \" ]; then BLACKBOX_CONFIG_TYPE=\"-enhanced\"; fi;
+           if [[ \"${BLACKBOX_VERSION}\" \\> \"0.9 \" ]]; then BLACKBOX_CONFIG_TYPE=\"-9.0\"; fi;
+
+           echo Config type ${BLACKBOX_CONFIG_TYPE};
+
+           CONFIG_TMPL=$(cat ${DDIR}/blackbox-config${BLACKBOX_CONFIG_TYPE}.json.tmpl);
+
+           CONFIG_WITH_OTHER_HOSTS=$(echo $CONFIG_TMPL |  sed \"s/%SMILO-NODE1_SERVICE_HOST%/$SMILO_NODE1_SERVICE_HOST/g\" |  sed \"s/%SMILO-NODE2_SERVICE_HOST%/$SMILO_NODE2_SERVICE_HOST/g\" |  sed \"s/%SMILO-NODE3_SERVICE_HOST%/$SMILO_NODE3_SERVICE_HOST/g\" |  sed \"s/%SMILO-NODE4_SERVICE_HOST%/$SMILO_NODE4_SERVICE_HOST/g\" |  sed \"s/%SMILO-NODE5_SERVICE_HOST%/$SMILO_NODE5_SERVICE_HOST/g\" |  sed \"s/%SMILO-NODE6_SERVICE_HOST%/$SMILO_NODE6_SERVICE_HOST/g\" |  sed \"s/%SMILO-NODE7_SERVICE_HOST%/$SMILO_NODE7_SERVICE_HOST/g\" ) ;
+           CONFIG_WITH_ALL_HOSTS=$(echo $CONFIG_WITH_OTHER_HOSTS | sed \"s/%THIS_SERVICE_HOST%/$SMILO_NODE7_SERVICE_HOST/g\");
+           PRIV_KEY=$(cat $DDIR/tm.key)
+           PUB_KEY=$(cat $DDIR/tm.pub)
+           CONFIG_FINAL=$(echo $CONFIG_WITH_ALL_HOSTS | sed \"s-%THIS_PRIV_KEY%-${PRIV_KEY}-g\" |  sed \"s-%THIS_PUB_KEY%-${PUB_KEY}-g\");
+           CONFIG_FINAL_9_0=$(echo $CONFIG_WITH_ALL_HOSTS | sed \"s-%THIS_PRIV_KEY%-${DDIR}/tm.key-g\" |  sed \"s-%THIS_PUB_KEY%-${DDIR}/tm.pub-g\");
+           if [[ \"${BLACKBOX_VERSION}\" \\> \"0.9 \" ]]; then CONFIG_FINAL=${CONFIG_FINAL_9_0}; fi;
+           echo $CONFIG_FINAL >  ${DDIR}/blackbox-config-with-hosts.json;
+           cat  ${DDIR}/blackbox-config-with-hosts.json;
+           /usr/local/bin/blackbox -configfile ${DDIR}/blackbox-config-with-hosts.json;
+        "
+        ports:
+          - containerPort: 9001
+        env:
+          - name: SMILO_HOME
+            value: /etc/smilo/sdata
+          - name: DDIR
+            value: /etc/smilo/sdata/tm
+        volumeMounts:
+        - name: smilo-logs-persistent-storage
+          mountPath: /etc/smilo/sdata/logs
+        - name: tm-persistent-storage
+          mountPath: /etc/smilo/sdata/tm
+        - name: smilo-persistent-storage
+          mountPath: /etc/smilo/sdata
+        - name: keystore-tm
+          mountPath: /etc/smilo/sdata/tm/tm.pub
+          subPath: tm.pub
+        - name: keystore-tm
+          mountPath: /etc/smilo/sdata/tm/tm.key
+          subPath: tm.key
+        - name: blackbox-config
+          mountPath: /etc/smilo/sdata/tm/blackbox-config.json.tmpl
+          subPath: blackbox-config.json.tmpl
+      - name: smilo
+        image: quay.io/smilo/go-smilo:v1.9.2
+        command: [ "sh" ]
+        # TODO: have to generate sed files
+        #       PERM_NODE_JSON=$(echo $PERM_NODE_TMPL | sed \"s/%SMILO-NODE01_SERVICE_HOST%/$SMILO_NODE01_SERVICE_HOST/g\" | sed \"s/%SMILO-NODE02_SERVICE_HOST%/$SMILO_NODE02_SERVICE_HOST/g\");
+        # sleep to give constellation some time to start up and discover the other nodes.
+        args:
+        - "-cx"
+        - "
+         
+           sleep 5;
+           PERM_NODE_TMPL=$(cat $SMILO_DATA_DIR/permissioned-nodes.json.tmpl);
+           PERM_NODE_JSON=$(echo $PERM_NODE_TMPL |  sed \"s/%SMILO-NODE1_SERVICE_HOST%/$SMILO_NODE1_SERVICE_HOST/g\" |  sed \"s/%SMILO-NODE2_SERVICE_HOST%/$SMILO_NODE2_SERVICE_HOST/g\" |  sed \"s/%SMILO-NODE3_SERVICE_HOST%/$SMILO_NODE3_SERVICE_HOST/g\" |  sed \"s/%SMILO-NODE4_SERVICE_HOST%/$SMILO_NODE4_SERVICE_HOST/g\" |  sed \"s/%SMILO-NODE5_SERVICE_HOST%/$SMILO_NODE5_SERVICE_HOST/g\" |  sed \"s/%SMILO-NODE6_SERVICE_HOST%/$SMILO_NODE6_SERVICE_HOST/g\" |  sed \"s/%SMILO-NODE7_SERVICE_HOST%/$SMILO_NODE7_SERVICE_HOST/g\" );
+           echo $PERM_NODE_JSON >  $SMILO_DATA_DIR/permissioned-nodes.json;
+           cp $SMILO_DATA_DIR/permissioned-nodes.json $SMILO_DATA_DIR/static-nodes.json;
+
+           rm -r /etc/smilo/sdata/contracts-tmp;
+
+           echo what in this dir;
+           ls  $SMILO_DATA_DIR;
+           cat /etc/smilo/genesis/genesis-geth.json;
+
+           chmod 644 $SMILO_DATA_DIR/keystore/key;
+           touch $SMILO_DATA_DIR/password.txt;
+
+           args=\" --smilobft.permissioned=true --smilobft.blockperiod 1 --smilobft.requesttimeout 10000 --syncmode full --mine --miner.gasprice 1 --miner.threads 1 --rpcapi admin,db,eth,debug,miner,net,shh,txpool,personal,web3,smilobft,sport  \";
+         
+           VAULT_IPC=/etc/smilo/sdata/tm/tm.ipc /usr/local/bin/geth \
+           --datadir $SMILO_DATA_DIR \
+           $args \
+           --verbosity 9 \
+           --allow-insecure-unlock \
+           --unlock 0 \
+           --rpc \
+           --rpcaddr 127.0.0.1 \
+           --rpcport 8546 \
+           --port 21000 \
+            \
+           --password $SMILO_DATA_DIR/password.txt 2>&1 | tee -a /etc/smilo/sdata/logs/smilo.log;"
+        ports:
+          - containerPort: 8546
+          - containerPort: 21000
+        env:
+        - name: PRIVATE_CONFIG
+          value: /etc/smilo/sdata/tm/tm.ipc
+        - name: SMILO_DATA_DIR
+          value: /etc/smilo/sdata/dd
+        - name: SMILO_HOME
+          value: /etc/smilo/sdata
+        - name: SHOME
+          value: /etc/smilo/sdata
+        - name: TM_HOME
+          value: /etc/smilo/sdata/tm/
+        volumeMounts:
+        - name: genesis-config-persistent-storage
+          mountPath: /etc/smilo/genesis/genesis-geth.json
+          subPath: genesis-geth.json
+        - name: smilo-persistent-storage
+          mountPath: /etc/smilo/sdata
+        - name: tm-persistent-storage
+          mountPath: /etc/smilo/sdata/tm
+        - name: smilo-key-config-persistent-storage
+          mountPath: /etc/smilo/sdata/dd/keystore/key
+          subPath: key
+        - name: smilo-logs-persistent-storage
+          mountPath: /etc/smilo/sdata/logs
+        - name: smilo-nodekey
+          mountPath: /etc/smilo/sdata/dd/geth/nodekey
+          subPath: nodekey
+        - name: smilo-permissioned-config
+          mountPath: /etc/smilo/sdata/dd/permissioned-nodes.json.tmpl
+          subPath: permissioned-nodes.json
+        - name: smilo-permissioned-config
+          mountPath: /etc/smilo/sdata/dd/static-nodes.json.tmpl
+          subPath: permissioned-nodes.json
+      volumes:
+      - name: smilo-permissioned-config
+        configMap:
+          name: smilo-permissioned-config
+          items:
+          - key: permissioned-nodes.json
+            path: permissioned-nodes.json
+      - name: genesis-config-persistent-storage
+        configMap:
+          name: genesis-config
+          items:
+          - key: genesis-geth.json
+            path: genesis-geth.json
+      - name: blackbox-config
+        configMap:
+          name: blackbox-config
+          items:
+          - key: blackbox-config.json.tmpl
+            path: blackbox-config.json.tmpl
+      - name: contracts-config
+        configMap:
+          name: contracts-config
+      - name: keystore-tm
+        configMap:
+          name: smilo-node7-tm-key-config
+          items:
+          - key: tm.pub
+            path: tm.pub
+          - key: tm.key
+            path: tm.key
+      - name: smilo-key-config-persistent-storage
+        configMap:
+          name: smilo-node7-account-key-config
+          items:
+          - key: key
+            path: key
+      - name: smilo-nodekey
+        configMap:
+          name: smilo-node7-nodekey-config
+          items:
+          - key: nodekey
+            path: nodekey
+      # PVC (configurable) https://kubernetes.io/docs/concepts/storage/persistent-volumes/#claims-as-volumes
+     
+      - name: smilo-persistent-storage
+        hostPath:
+          path: /var/lib/docker/geth-storage/smilo-node7
+      - name: tm-persistent-storage
+        hostPath:
+          path: /var/lib/docker/geth-storage/tm-smilo-node7
+      - name: smilo-logs-persistent-storage
+        hostPath:
+          path: /var/lib/docker/geth-storage/smilo-node7-logs
+      

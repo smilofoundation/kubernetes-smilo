@@ -1,0 +1,78 @@
+
+
+
+{
+    "useWhiteList": false,
+    "server": {
+        "port": 9001,
+        "hostName": "http://%THIS_SERVICE_HOST%",
+        "hostaddr": "0.0.0.0",
+        "sslConfig": {
+            "tls": "OFF",
+            "generateKeyStoreIfNotExisted": true,
+            "serverKeyStore": "/etc/smilo/sdata/tm/server-keystore",
+            "serverKeyStorePassword": "smilo",
+            "serverTrustStore": "/etc/smilo/sdata/tm/server-truststore",
+            "serverTrustStorePassword": "smilo",
+            "serverTrustMode": "TOFU",
+            "knownClientsFile": "/etc/smilo/sdata/tm/knownClients",
+            "clientKeyStore": "/etc/smilo/sdata/tm/client-keystore",
+            "clientKeyStorePassword": "smilo",
+            "clientTrustStore": "/etc/smilo/sdata/tm/client-truststore",
+            "clientTrustStorePassword": "smilo",
+            "clientTrustMode": "TOFU",
+            "knownServersFile": "/etc/smilo/sdata/tm/knownServers"
+        }
+    },
+    "peer": [
+
+         {
+           "url": "http://%SMILO-NODE1_SERVICE_HOST%:9001"
+         },
+
+
+         {
+           "url": "http://%SMILO-NODE2_SERVICE_HOST%:9001"
+         },
+
+
+         {
+           "url": "http://%SMILO-NODE3_SERVICE_HOST%:9001"
+         },
+
+
+         {
+           "url": "http://%SMILO-NODE4_SERVICE_HOST%:9001"
+         },
+
+
+         {
+           "url": "http://%SMILO-NODE5_SERVICE_HOST%:9001"
+         },
+
+
+         {
+           "url": "http://%SMILO-NODE6_SERVICE_HOST%:9001"
+         },
+
+
+         {
+           "url": "http://%SMILO-NODE7_SERVICE_HOST%:9001"
+         }
+
+    ],
+    "keys": {
+        "passwords": [],
+        "keyData": [
+            {
+                "config": "/etc/smilo/sdata/tm/tm.key",
+                "publicKey": "/etc/smilo/sdata/tm/tm.pub"
+            }
+        ]
+    },
+    "alwaysSendTo": [],
+    "socket": "/etc/smilo/sdata/tm/tm.ipc",
+    "dbfile": "/etc/smilo/sdata/tm/blackbox.db",
+    "peersdbfile": "/etc/smilo/sdata/tm/blackbox-peers.db"
+}
+

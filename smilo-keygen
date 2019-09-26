@@ -4,7 +4,7 @@ require "yaml"
 require "erb"
 
 # generic variables
-@config     = YAML.load_file("qubernetes.yaml")
+@config     = YAML.load_file("kubernetes-smilo.yaml")
 @nodes      = YAML.load_file("nodes.yaml")["nodes"]
 
 File.open("gen-node-keys.sh", "w") do |f|

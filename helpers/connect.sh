@@ -3,7 +3,7 @@
 if [ "$#" -lt 2 ]; then
   echo " ./connect.sh $NODE_NUM $CONTAINER"
   echo "  example: "
-  echo " ./connect.sh node2 quorum"
+  echo " ./connect.sh node2 smilo"
   exit 1
 fi
 

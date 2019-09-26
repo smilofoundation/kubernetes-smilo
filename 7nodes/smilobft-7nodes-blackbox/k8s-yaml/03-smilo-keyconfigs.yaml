@@ -1,0 +1,353 @@
+
+
+
+# kubectl create configmap game-config --from-file=configure-pod-container/dd1/key
+# the key used for private transactions
+# smilo transaction manager keys
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: smilo-node1-tm-key-config
+  namespace: smilo-test
+  labels:
+    app: kubernetes-smilo
+    name: smilo-node1-tm-key-config
+data:
+  tm.key: |-
+    {"data":{"bytes":"0hYRTHo2eU5FWe25qrvuPOOZVjWyeRG7nHaqa71uk9c="},"type":"unlocked"}
+  tm.pub: |-
+    Pnu93Oan/uBvA+zsezkvySQzEVXeJdmeBVGbfYfeM3w=
+---
+# kubectl create configmap game-config --from-file=configure-pod-container/dd1/key
+# nodekey (enode) (geth/ethereum)
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: smilo-node1-nodekey-config
+  namespace: smilo-test
+  labels:
+    app: kubernetes-smilo
+    name: smilo-node1-nodekey-config
+data:
+  nodekey: |
+    179eda1edc303213068a7eb051864f1457faa66209ce9ce22337245ac1f3fd82
+
+# ethereum / geth account keys (keystore)
+---
+# kubectl create configmap game-config --from-file=configure-pod-container/dd1/key
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: smilo-node1-account-key-config
+  namespace: smilo-test
+  labels:
+    app: kubernetes-smilo
+    name: smilo-node1-account-key-config
+data:
+  key: |-
+
+
+    {"address":"5479a6edd4fddeb099c7d3a44da3e7363415c5d6","crypto":{"cipher":"aes-128-ctr","ciphertext":"e6d536c541927a0e93c7405d910b2c79431c72d61fddba93471b486032742586","cipherparams":{"iv":"cff63b05344733042c59c2a485134662"},"kdf":"scrypt","kdfparams":{"dklen":32,"n":262144,"p":1,"r":8,"salt":"22243240015eaa0a7b3e0d675aa523dccf974e9f43d483f59ae9d182212dc034"},"mac":"1f10bf8000e4733b60f889826286c6e8536b302d436806c93d1b64c4a8d6ccf8"},"id":"7c484455-e1b3-4f2c-a70c-c772dfdc4b31","version":3}
+# end node
+
+# kubectl create configmap game-config --from-file=configure-pod-container/dd1/key
+# the key used for private transactions
+# smilo transaction manager keys
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: smilo-node2-tm-key-config
+  namespace: smilo-test
+  labels:
+    app: kubernetes-smilo
+    name: smilo-node2-tm-key-config
+data:
+  tm.key: |-
+    {"data":{"bytes":"3kJPjmCY2jx+Hvc6GHUnuB+hh69CJWORc/Y4ShvDmbA="},"type":"unlocked"}
+  tm.pub: |-
+    JvMmCGTlrrdt4YcPVRMSCl989KvwzJtaV+xT1XfP9kw=
+---
+# kubectl create configmap game-config --from-file=configure-pod-container/dd1/key
+# nodekey (enode) (geth/ethereum)
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: smilo-node2-nodekey-config
+  namespace: smilo-test
+  labels:
+    app: kubernetes-smilo
+    name: smilo-node2-nodekey-config
+data:
+  nodekey: |
+    7762ec8a768bc430214ecc956659d428f3830af0a04efc513790f09708a44885
+
+# ethereum / geth account keys (keystore)
+---
+# kubectl create configmap game-config --from-file=configure-pod-container/dd1/key
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: smilo-node2-account-key-config
+  namespace: smilo-test
+  labels:
+    app: kubernetes-smilo
+    name: smilo-node2-account-key-config
+data:
+  key: |-
+
+
+    {"address":"3f71b7aac8437ace8e065bb973859bd2c09a808e","crypto":{"cipher":"aes-128-ctr","ciphertext":"0e7da5958c20937d4dce3d7cd6378381a4016ce8244b71a7391a8a85be219dd9","cipherparams":{"iv":"8bf9abc2c27ae18ad6beff0d1c1cb898"},"kdf":"scrypt","kdfparams":{"dklen":32,"n":262144,"p":1,"r":8,"salt":"926763d44426908335b14ddd9803ee0e5a76a4bcfaaabec4a784ce162e9daadb"},"mac":"6e4f808370103596cb0e6562a31eac8d1c16f912eefef1462b3dad8b8667d63d"},"id":"04d5024e-1e58-44c6-bcb4-53da40dcde89","version":3}
+# end node
+
+# kubectl create configmap game-config --from-file=configure-pod-container/dd1/key
+# the key used for private transactions
+# smilo transaction manager keys
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: smilo-node3-tm-key-config
+  namespace: smilo-test
+  labels:
+    app: kubernetes-smilo
+    name: smilo-node3-tm-key-config
+data:
+  tm.key: |-
+    {"data":{"bytes":"NwOdVBU70P0+5l9nw+iuMfk/mmhoNZJ9ELnW040rHNY="},"type":"unlocked"}
+  tm.pub: |-
+    0VwazgYQ/ZGZJS4dClTkfA8ld8y/hPBTXqOLwqZTtTg=
+---
+# kubectl create configmap game-config --from-file=configure-pod-container/dd1/key
+# nodekey (enode) (geth/ethereum)
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: smilo-node3-nodekey-config
+  namespace: smilo-test
+  labels:
+    app: kubernetes-smilo
+    name: smilo-node3-nodekey-config
+data:
+  nodekey: |
+    a8445fae786c6535e6b28215c3521a4605cf1d800074f82906d2ff094d2443ca
+
+# ethereum / geth account keys (keystore)
+---
+# kubectl create configmap game-config --from-file=configure-pod-container/dd1/key
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: smilo-node3-account-key-config
+  namespace: smilo-test
+  labels:
+    app: kubernetes-smilo
+    name: smilo-node3-account-key-config
+data:
+  key: |-
+
+
+    {"address":"5445fb5701dc05ac59495645319a2b9004f680be","crypto":{"cipher":"aes-128-ctr","ciphertext":"8c5b0589eab051b38cfd361beba9e4a49ce2d3d0414827278acf4fc4e6eafcb0","cipherparams":{"iv":"c28eec97a6c4e7a75c7b07d477eb4d57"},"kdf":"scrypt","kdfparams":{"dklen":32,"n":262144,"p":1,"r":8,"salt":"5c18de8cb9d8b1943207fa0bab72efb5f63051f0e97b8093066a390dfa179fef"},"mac":"57eca15191b146412fb5d171caf8973a3496d275f675461a98e3dc504de7c00b"},"id":"6201cfde-6132-448a-948b-aaa0bda012db","version":3}
+# end node
+
+# kubectl create configmap game-config --from-file=configure-pod-container/dd1/key
+# the key used for private transactions
+# smilo transaction manager keys
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: smilo-node4-tm-key-config
+  namespace: smilo-test
+  labels:
+    app: kubernetes-smilo
+    name: smilo-node4-tm-key-config
+data:
+  tm.key: |-
+    {"data":{"bytes":"3+ZWBPeUmQRFUQvJfTk2iieSuIfwgFziJLmNUpzNPuE="},"type":"unlocked"}
+  tm.pub: |-
+    d2G0ylVmV2YaYt6cYitkY8MF3URjVJ1vFQa5nsOvLHg=
+---
+# kubectl create configmap game-config --from-file=configure-pod-container/dd1/key
+# nodekey (enode) (geth/ethereum)
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: smilo-node4-nodekey-config
+  namespace: smilo-test
+  labels:
+    app: kubernetes-smilo
+    name: smilo-node4-nodekey-config
+data:
+  nodekey: |
+    b09fb08c30ab0b685b96af38559b9d3974a1915d20cc287aaa1709b6d0da0f18
+
+# ethereum / geth account keys (keystore)
+---
+# kubectl create configmap game-config --from-file=configure-pod-container/dd1/key
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: smilo-node4-account-key-config
+  namespace: smilo-test
+  labels:
+    app: kubernetes-smilo
+    name: smilo-node4-account-key-config
+data:
+  key: |-
+
+
+    {"address":"c51445629b95c272f021d9ee5a567cb8a4a8f8ab","crypto":{"cipher":"aes-128-ctr","ciphertext":"5c794bd0e31ebed3defa9619377e147bf09894d3e81c3c63af2e96a5b24b5200","cipherparams":{"iv":"c890cbe7d51f12a5526a99d9dfc6222b"},"kdf":"scrypt","kdfparams":{"dklen":32,"n":262144,"p":1,"r":8,"salt":"f85ed2df3f7b16e807e2bbd24b6a8d8384f943511326eb07be3b8f819ca0bb41"},"mac":"392ab966169566e0d7ec7461fc5671f626ebf1aedccc59d6e37003da001588ff"},"id":"dd695db3-8966-47ba-8214-1c37e68018ac","version":3}
+# end node
+
+# kubectl create configmap game-config --from-file=configure-pod-container/dd1/key
+# the key used for private transactions
+# smilo transaction manager keys
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: smilo-node5-tm-key-config
+  namespace: smilo-test
+  labels:
+    app: kubernetes-smilo
+    name: smilo-node5-tm-key-config
+data:
+  tm.key: |-
+    {"data":{"bytes":"/u7STbKjRcNBRF5huMmhHlYgOGBzFguRkNhizj3ok+M="},"type":"unlocked"}
+  tm.pub: |-
+    afryi/R03fry2zyj82okOXGXnDHjZ9cekKAEH/bE8RQ=
+---
+# kubectl create configmap game-config --from-file=configure-pod-container/dd1/key
+# nodekey (enode) (geth/ethereum)
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: smilo-node5-nodekey-config
+  namespace: smilo-test
+  labels:
+    app: kubernetes-smilo
+    name: smilo-node5-nodekey-config
+data:
+  nodekey: |
+    46d7a9defe4db3cea4ec48a7554e0b60d02ea188c8883aa24e0ee604fc5b1ce7
+
+# ethereum / geth account keys (keystore)
+---
+# kubectl create configmap game-config --from-file=configure-pod-container/dd1/key
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: smilo-node5-account-key-config
+  namespace: smilo-test
+  labels:
+    app: kubernetes-smilo
+    name: smilo-node5-account-key-config
+data:
+  key: |-
+
+
+    {"address":"49b94ee08ce0d6a8e08a18ee54440718ae4b094d","crypto":{"cipher":"aes-128-ctr","ciphertext":"f7bc1ebc2e5cc2e89e29fce5f289c2effdbc1f8549eb51e6a000c79a3231eb9c","cipherparams":{"iv":"27f76c8019846a7e006feb05335b8adf"},"kdf":"scrypt","kdfparams":{"dklen":32,"n":262144,"p":1,"r":8,"salt":"f3645f77ecd38645a2c609664aa6f2515bc01c1cbfd4ed3390485ca7731a57de"},"mac":"c989214ffde5a53a31639344e0372d044fb2cf7ea56a260270d89e5fd03ff78d"},"id":"1beff8a6-eb73-405d-8700-822eb20e6bd1","version":3}
+# end node
+
+# kubectl create configmap game-config --from-file=configure-pod-container/dd1/key
+# the key used for private transactions
+# smilo transaction manager keys
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: smilo-node6-tm-key-config
+  namespace: smilo-test
+  labels:
+    app: kubernetes-smilo
+    name: smilo-node6-tm-key-config
+data:
+  tm.key: |-
+    {"data":{"bytes":"+SXeWzIi8/xNKuK2Bf8LwFFm3ze/RYN76gKyePnWUEo="},"type":"unlocked"}
+  tm.pub: |-
+    2+JNRqlmuWfVZl4d+n4JA4tnI/FFoaPudrwuQcKP73s=
+---
+# kubectl create configmap game-config --from-file=configure-pod-container/dd1/key
+# nodekey (enode) (geth/ethereum)
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: smilo-node6-nodekey-config
+  namespace: smilo-test
+  labels:
+    app: kubernetes-smilo
+    name: smilo-node6-nodekey-config
+data:
+  nodekey: |
+    642b99df4126b61788b6b3279bd1c81e784ff194f05beeaaca1c446e267b7170
+
+# ethereum / geth account keys (keystore)
+---
+# kubectl create configmap game-config --from-file=configure-pod-container/dd1/key
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: smilo-node6-account-key-config
+  namespace: smilo-test
+  labels:
+    app: kubernetes-smilo
+    name: smilo-node6-account-key-config
+data:
+  key: |-
+
+
+    {"address":"197e60ac2b838b0e2cf54f1a5b75f3157097b57c","crypto":{"cipher":"aes-128-ctr","ciphertext":"8f48c67e4640f0805c73bade865e857583d9d7d9ecf9a43896829b00a4cf813c","cipherparams":{"iv":"bc285a82e096c1e6372c337a10a9155b"},"kdf":"scrypt","kdfparams":{"dklen":32,"n":262144,"p":1,"r":8,"salt":"1fdcb3a087625077633fbb3f178154fc1fbb86fc14f778c0ad4b85bcebb1b97c"},"mac":"67e5154060cfde4f28f281b060acab769d3d75ff87e4f0436176b8fbf3444bef"},"id":"c8486031-109e-4a63-91db-6308269c58f7","version":3}
+# end node
+
+# kubectl create configmap game-config --from-file=configure-pod-container/dd1/key
+# the key used for private transactions
+# smilo transaction manager keys
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: smilo-node7-tm-key-config
+  namespace: smilo-test
+  labels:
+    app: kubernetes-smilo
+    name: smilo-node7-tm-key-config
+data:
+  tm.key: |-
+    {"data":{"bytes":"9fMmRr64GqMcDQhfLMUoLoVRFWYlWtkPkbprulcT9dg="},"type":"unlocked"}
+  tm.pub: |-
+    bJmNH5jP+DDFHD+298O0fAY+VNVUq/FuJW9ZrRwcihk=
+---
+# kubectl create configmap game-config --from-file=configure-pod-container/dd1/key
+# nodekey (enode) (geth/ethereum)
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: smilo-node7-nodekey-config
+  namespace: smilo-test
+  labels:
+    app: kubernetes-smilo
+    name: smilo-node7-nodekey-config
+data:
+  nodekey: |
+    e7bd5305e9cc0c168bb487025b44c92ef0b46d8661c22e8a181322935804307c
+
+# ethereum / geth account keys (keystore)
+---
+# kubectl create configmap game-config --from-file=configure-pod-container/dd1/key
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: smilo-node7-account-key-config
+  namespace: smilo-test
+  labels:
+    app: kubernetes-smilo
+    name: smilo-node7-account-key-config
+data:
+  key: |-
+
+
+    {"address":"369c075ffe7f22085816662fa919646c08a9f913","crypto":{"cipher":"aes-128-ctr","ciphertext":"049972b4a6dd1e769cd2a810c966c1f655cfe96167f8f8164d9e96975384898c","cipherparams":{"iv":"a20e4dee0b296aa1811ada395358caec"},"kdf":"scrypt","kdfparams":{"dklen":32,"n":262144,"p":1,"r":8,"salt":"dc2604c7d9b202a1ab09b838b2ada35a6949cad2bb3c271fb0ed12c8402a9def"},"mac":"854d4c499c30081b534d0706885ae48d6e755eac027c4cff498748d4069c277f"},"id":"2ebdc7a0-bfad-4504-9461-c792492bc15a","version":3}
+# end node
+

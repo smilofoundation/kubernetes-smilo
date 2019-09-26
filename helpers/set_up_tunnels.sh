@@ -1,12 +1,12 @@
 #!/bin/bash
 
-# set up tunnels for a minikube quorum deployment, so
+# set up tunnels for a minikube smilo deployment, so
 # that applications, such as cakeshop, can connected
 # to the transaction manager without mapping proxied
 # IP addresses, e.g. minikube sets up proxy IPs, but
 # these will be different from the IPs used by the internal
 # cluster, mainly in curl http://$IP:9001/partyinfo.
-IPS=$(kubectl get svc | grep "quorum" | awk '{ print $3}')
+IPS=$(kubectl get svc | grep "smilo" | awk '{ print $3}')
 MINI_IP=$(minikube ip)
 for IP in $IPS
 do

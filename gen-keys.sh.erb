@@ -8,7 +8,7 @@ def set_node_template_vars(values)
 end
 -%>
 
-<% @Key_Dir_Base = @config["quorum"]["Key_Dir_Base"] %>
+<% @Key_Dir_Base = @config["smilo"]["Key_Dir_Base"] %>
 <% @Node_Dirs = "" %>
 
 <%- @nodes.each do |node|
@@ -39,5 +39,6 @@ for node_key_dir in "${array[@]}"; do
   bootnode -genkey nodekey
   bootnode -nodekeyhex $(cat nodekey) -writeaddress > enode
   geth account import $KEY_DIR/nodekey --keystore $KEY_DIR --password password.txt
+  mv UTC-* key
   popd
 done

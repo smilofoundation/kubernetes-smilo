@@ -20,33 +20,33 @@ mkdir -p out/config
 # generate the nodes.yaml
 # file for the set number of
 # nodes.
-./quorum-create-nodes
+./smilo-create-nodes
 
-`
-puts ""
-puts "  Generating keys..."
-`
-# generate the keygen script
-# to generate nodekey, account keys, and
-# quorum transaction manger (tm.pub,tm.key) keys.
-./quorum-keygen
-`
+# `
+# puts ""
+# puts "  Generating keys..."
+# `
+# # generate the keygen script
+# # to generate nodekey, account keys, and
+# # smilo transaction manger (tm.pub,tm.key) keys.
+# ./smilo-keygen
+# `
 
-puts "  Generating Quorum configs..."
+puts "  Generating Smilo configs..."
 `
 # generate the appropriate config files:
 #   permissioned-nodes.json
 #   genesis.json 
-./quorum-config
+./smilo-config
 `
 
 puts ""
-puts  "  Base quorum resources have been generated. "
-puts  "  Running ./qubernetes to generate Kubernetes resources."
+puts  "  Base smilo resources have been generated. "
+puts  "  Running ./kubernetes-smilo to generate Kubernetes resources."
 puts ""
 `
-./qubernetes
+./kubernetes-smilo
 `
-puts "  Deploy Quorum Kubernetes resources:"
+puts "  Deploy Smilo Kubernetes resources:"
 puts "  $> kubectl apply -f out"
 

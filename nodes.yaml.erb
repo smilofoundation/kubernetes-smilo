@@ -1,4 +1,4 @@
-<%  @node_ct = YAML.load_file("qubernetes.yaml")["nodes"]["number"] %>
+<%  @node_ct = YAML.load_file("kubernetes-smilo.yaml")["nodes"]["number"] %>
 # here you can add as many nodes as you like, name and configure them
 # Note:
 # 1. need to be in the list of permissioned nodes and static nodes.
@@ -6,6 +6,6 @@
 nodes:
 <%  for i in 1..@node_ct do %>
 - member:
-    Node_UserIdent: quorum-node<%= i%>
+    Node_UserIdent: smilo-node<%= i%>
     Key_Dir: key<%= i%>
 <% end %>

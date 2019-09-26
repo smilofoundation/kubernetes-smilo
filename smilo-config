@@ -4,13 +4,13 @@ require "yaml"
 require "erb"
 
 # generic variables
-@config     = YAML.load_file("qubernetes.yaml")
+@config     = YAML.load_file("kubernetes-smilo.yaml")
 @nodes      = YAML.load_file("nodes.yaml")["nodes"]
 
-@Permissioned_Nodes_File    = @config["quorum"]["Permissioned_Nodes_File"]
-@Genesis_File               = @config["quorum"]["Genesis_File"]
+@Permissioned_Nodes_File    = @config["smilo"]["Permissioned_Nodes_File"]
+@Genesis_File               = @config["smilo"]["Genesis_File"]
 
-@Tessera_Config_Dir         = @config["quorum"]["tm"]["Tessera_Config_Dir"]
+@Blackbox_Config_Dir         = @config["smilo"]["tm"]["Blackbox_Config_Dir"]
 
 @Node_WSPort                = @config["geth"]["Node_WSPort"]
 @NodeP2P_ListenAddr         = @config["geth"]["NodeP2P_ListenAddr"]
@@ -35,8 +35,8 @@ File.open(@Permissioned_Nodes_File , "w") do |f|
   f.puts (ERB.new(File.read("permissioned-nodes.json.erb"), nil, "-").result)
 end
 
-puts "create tessera config."
-puts(@Tessera_Config_Dir + "/tessera-config.json")
-File.open(@Tessera_Config_Dir + "/tessera-config.json" , "w") do |f|
-  f.puts (ERB.new(File.read("tessera-config.json.erb"), nil, "-").result)
+puts "create blackbox config."
+puts(@Blackbox_Config_Dir + "/blackbox-config.json")
+File.open(@Blackbox_Config_Dir + "/blackbox-config.json" , "w") do |f|
+  f.puts (ERB.new(File.read("blackbox-config.json.erb"), nil, "-").result)
 end

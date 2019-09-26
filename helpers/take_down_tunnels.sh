@@ -3,7 +3,7 @@
 
 # helper script to take down tunnels that have been
 # setup by `set_up_tunnel.sh
-IPS=$(kubectl get svc | grep "quorum" | awk '{ print $3}')
+IPS=$(kubectl get svc | grep "smilo" | awk '{ print $3}')
 for IP in $IPS
 do
  sudo ifconfig lo0 -alias $IP

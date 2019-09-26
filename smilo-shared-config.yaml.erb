@@ -1,10 +1,10 @@
 <%-
- @Permissioned_Nodes_File    = @config["quorum"]["Permissioned_Nodes_File"]
- @Genesis_File               = @config["quorum"]["Genesis_File"]
- @Tessera_Config_Dir         = @config["quorum"]["tm"]["Tessera_Config_Dir"]
+ @Permissioned_Nodes_File    = @config["smilo"]["Permissioned_Nodes_File"]
+ @Genesis_File               = @config["smilo"]["Genesis_File"]
+ @Blackbox_Config_Dir        = @config["smilo"]["tm"]["Blackbox_Config_Dir"]
 
  # keys are named the same inside their respective directories.
- @Keystore_Dir = @config["quorum"]["Key_Dir_Base"]
+ @Keystore_Dir = @config["smilo"]["Key_Dir_Base"]
 %>
 
 <%- if @Namespace != "" %>
@@ -20,11 +20,11 @@ metadata:
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: quorum-permissioned-config
+  name: smilo-permissioned-config
   <%= @Namespace %>
   labels:
-    app: qubernetes
-    name: quorum-permissioned-config
+    app: kubernetes-smilo
+    name: smilo-permissioned-config
 data:
   permissioned-nodes.json: |
 
@@ -39,7 +39,7 @@ metadata:
   name: genesis-config
   <%= @Namespace %>
   labels:
-    app: qubernetes
+    app: kubernetes-smilo
     name: genesis-config
 data:
   genesis-geth.json: |-
@@ -51,14 +51,14 @@ data:
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: tessera-config
+  name: blackbox-config
   <%= @Namespace %>
   labels:
-    app: qubernetes
-    name: tessera-config
+    app: kubernetes-smilo
+    name: blackbox-config
 data:
-  tessera-config.json.tmpl: |-
-<%- File.readlines(@Tessera_Config_Dir + "/tessera-config.json").each do |line| -%>
+  blackbox-config.json.tmpl: |-
+<%- File.readlines(@Blackbox_Config_Dir + "/blackbox-config.json").each do |line| -%>
     <%= line -%>
 <% end -%>
 
@@ -69,7 +69,7 @@ metadata:
   name: contracts-config
   <%= @Namespace %>
   labels:
-    app: qubernetes
+    app: kubernetes-smilo
     name: contracts-config
 data:
   runscript.sh: |-

@@ -5,7 +5,7 @@
 if [ "$#" -lt 2 ]; then
   echo " ./podlogs.sh $NODE_NUM $CONTAINER"
   echo "  example: "
-  echo " ./podlogs.sh node2 quorum"
+  echo " ./podlogs.sh node2 smilo"
   exit 1
 fi
 

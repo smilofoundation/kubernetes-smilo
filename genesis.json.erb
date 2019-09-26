@@ -5,7 +5,7 @@ def set_node_template_vars(values)
     return
 end
 
-@Key_Dir_Base     = @config["quorum"]["Key_Dir_Base"]
+@Key_Dir_Base     = @config["smilo"]["Key_Dir_Base"]
 @Geth_Network_Id  = @config["geth"]["network"]["id"]
 @Accounts = ""
 @Account_Allocs = ""
@@ -13,7 +13,7 @@ end
 
 -%>
 
-<% if @config["quorum"]["consensus"] == "istanbul" %>
+<% if @config["smilo"]["consensus"] == "smilobft" %>
 {
 "alloc": {
   },
@@ -40,15 +40,10 @@ end
 
   <%-
    # generate extraData from all nodekeys
-   # create a istanbul validator config
-   # see: https://github.com/jpmorganchase/istanbul-tools/blob/master/cmd/istanbul/example/config.toml
-   # https://github.com/jpmorganchase/istanbul-tools
-   # $> istanbul extra encode --config ./cmd/istanbul/example/config.toml
-   #
-   # Note: this requires istanbul-tools and nodejs to be installed on the host.
+   # create a smilobft validator config
   %>
   <%-
-  @IstanbulConfig = @Key_Dir_Base + "/istanbul-validator-config.toml"
+  @SmilobftConfig = @Key_Dir_Base + "/smilobft-validator-config.toml"
 
  @nodeList = []
  @nodes.each_with_index do |node, indexNode|
@@ -57,23 +52,23 @@ end
    #puts(@Key_Dir_Base + "/" + @Node_Key_Dir + "/nodekey")
    File.open(@Key_Dir_Base + "/" + @Node_Key_Dir + "/nodekey", "r") do |f|
     f.each_line do |nodekey|
-      nodeAcct=`node istanbul-helpers/privateKeyToAccount.js 0x#{nodekey}`
-      puts("node account for Istanbul is: " + nodeAcct)
+      nodeAcct=`node smilobft-helpers/privateKeyToAccount.js 0x#{nodekey}`
+      puts("node account for Smilobft is: " + nodeAcct)
       nodeAcct=nodeAcct.strip
       @nodeList.push(nodeAcct)
-      File.open(@IstanbulConfig, "a") do |f|
+      File.open(@SmilobftConfig, "a") do |f|
         f.puts nodeAcct + ","
       end
     end
    end
   end
-  # File.open(@IstanbulConfig, "a") do |f|
+  # File.open(@SmilobftConfig, "a") do |f|
   #    f.puts "]"
   # end
    puts "Going to encode fullnodes -> "+ @nodeList * ","
    extraData=`extradata extra encode --fullnodes #{@nodeList.join(",")} | awk '{print $4}'`
    extraData=extraData.strip
-   puts("Generated istanbul \"extraData\"=\"" + extraData + "\"")
+   puts("Generated smilobft \"extraData\"=\"" + extraData + "\"")
    -%>
   "extraData": "<%= extraData%>",
   "gasLimit": "0x47b760",

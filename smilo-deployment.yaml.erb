@@ -22,35 +22,35 @@ else
   @Geth_Startup_Params   = ""
 end
 
-@Node_DataDir          = @config["quorum"]["Node_DataDir"]
-@Quorum_Version        = @config["quorum"]["quorum"]["Quorum_Version"]
-@Tm_Version            = @config["quorum"]["tm"]["Tm_Version"]
-@Tm_Port               = @config["quorum"]["tm"]["Port"]
-@Tm_Name               = @config["quorum"]["tm"]["Name"]
+@Node_DataDir          = @config["smilo"]["Node_DataDir"]
+@Smilo_Version         = @config["smilo"]["smilo"]["Smilo_Version"]
+@Tm_Version            = @config["smilo"]["tm"]["Tm_Version"]
+@Tm_Port               = @config["smilo"]["tm"]["Port"]
+@Tm_Name               = @config["smilo"]["tm"]["Name"]
 
 # Storage for data directories, default host with default DataDir (hostPath).
 @Storage_Type          = "Host"
 @DataDir               = "/var/lib/docker/geth-storage"
-if @config["quorum"]["Data_Dir"]
-    @DataDir = @config["quorum"]["Data_Dir"]
+if @config["smilo"]["Data_Dir"]
+    @DataDir = @config["smilo"]["Data_Dir"]
 end
 # if storage is set set up the appropriate storage variable (host or PVC)
-if @config["quorum"]["storage"]
-  if @config["quorum"]["storage"]["Type"] == "Host"
+if @config["smilo"]["storage"]
+  if @config["smilo"]["storage"]["Type"] == "Host"
     @Storage_Type = "Host"
-    if @config["quorum"]["storage"]["Data_Dir"]
-      @DataDir = @config["quorum"]["storage"]["Data_Dir"]
+    if @config["smilo"]["storage"]["Data_Dir"]
+      @DataDir = @config["smilo"]["storage"]["Data_Dir"]
     end
   # Persistent_Volume_Claim
-  elsif @config["quorum"]["storage"]["Type"] == "PVC"
+  elsif @config["smilo"]["storage"]["Type"] == "PVC"
     @Storage_Type = "PVC"
   end
 end
 %>
 
-# The quorum deployment consists of
-# 1. the transaction manager / private tx container (constellation or tessera)
-# 2. the quorum node container
+# The smilo deployment consists of
+# 1. the transaction manager / private tx container (blackbox)
+# 2. the smilo node container
 
 ---
 apiVersion: extensions/v1beta1
@@ -66,58 +66,58 @@ spec:
     metadata:
       name:  <%= @Node_UserIdent %>-deployment
       labels:
-        app: qubernetes
+        app: kubernetes-smilo
         tier: backend
         name: <%= @Node_UserIdent %>-deployment
     spec:
       initContainers:
-      - name: quorum-genesis-init-container
-        image: quay.io/smilo/go-smilo:<%= @Quorum_Version %>
+      - name: smilo-genesis-init-container
+        image: quay.io/smilo/go-smilo:<%= @Smilo_Version %>
         command: [ "sh" ]
         args:
         - "-cx"
-        - "if [ ! -f $QUORUM_DATA_DIR/genesis_created ]; then
-              /usr/local/bin/geth --datadir $QUORUM_DATA_DIR init /etc/quorum/genesis/genesis-geth.json;
-              touch $QUORUM_DATA_DIR/genesis_created;
+        - "if [ ! -f $SMILO_DATA_DIR/genesis_created ]; then
+              /usr/local/bin/geth --datadir $SMILO_DATA_DIR init /etc/smilo/genesis/genesis-geth.json;
+              touch $SMILO_DATA_DIR/genesis_created;
            fi;
            cp -r <%= @Node_DataDir %>/contracts-tmp <%= @Node_DataDir %>/contracts;
            chmod 755  <%= @Node_DataDir %>/contracts/runscript.sh;
           "
         env:
-          - name: QUORUM_DATA_DIR
+          - name: SMILO_DATA_DIR
             value: <%= @Node_DataDir %>/dd
         volumeMounts:
-        - name: quorum-persistent-storage
+        - name: smilo-persistent-storage
           mountPath:  <%= @Node_DataDir %>
         - name: genesis-config-persistent-storage
-          mountPath: /etc/quorum/genesis/genesis-geth.json
+          mountPath: /etc/smilo/genesis/genesis-geth.json
           subPath: genesis-geth.json
         - name: contracts-config
           mountPath: <%= @Node_DataDir%>/contracts-tmp
           readOnly: false
       containers:
-      - name: tessera
+      - name: blackbox
         image: quay.io/smilo/smilo-blackbox:<%= @Tm_Version %>
         command: ["sh"]
         args:
         - "-cx"
-        - "chmod 600 $QUORUM_HOME/tm/tm.key;
+        - "chmod 600 $SMILO_HOME/tm/tm.key;
            echo DDIR is $DDIR;
            printenv;
 
-           TESSERA_VERSION=<%= @Tm_Version %>
-           echo \"Blackbox version: ${TESSERA_VERSION}\";
+           BLACKBOX_VERSION=<%= @Tm_Version %>
+           echo \"Blackbox version: ${BLACKBOX_VERSION}\";
 
-           TESSERA_VERSION=\"${TESSERA_VERSION}-suffix\";
+           BLACKBOX_VERSION=\"${BLACKBOX_VERSION}-suffix\";
 
-           TESSERA_CONFIG_TYPE=;
+           BLACKBOX_CONFIG_TYPE=;
 
-           if [ \"${TESSERA_VERSION}\" \\> \"0.8 \" ]; then TESSERA_CONFIG_TYPE=\"-enhanced\"; fi;
-           if [[ \"${TESSERA_VERSION}\" \\> \"0.9 \" ]]; then TESSERA_CONFIG_TYPE=\"-9.0\"; fi;
+           if [ \"${BLACKBOX_VERSION}\" \\> \"0.8 \" ]; then BLACKBOX_CONFIG_TYPE=\"-enhanced\"; fi;
+           if [[ \"${BLACKBOX_VERSION}\" \\> \"0.9 \" ]]; then BLACKBOX_CONFIG_TYPE=\"-9.0\"; fi;
 
-           echo Config type ${TESSERA_CONFIG_TYPE};
+           echo Config type ${BLACKBOX_CONFIG_TYPE};
 
-           CONFIG_TMPL=$(cat ${DDIR}/tessera-config${TESSERA_CONFIG_TYPE}.json.tmpl);
+           CONFIG_TMPL=$(cat ${DDIR}/blackbox-config${BLACKBOX_CONFIG_TYPE}.json.tmpl);
 
            <%- @This_Host = ("#{@Node_UserIdent}".upcase + "_SERVICE_HOST").gsub("-", "_") -%>
            CONFIG_WITH_OTHER_HOSTS=$(echo $CONFIG_TMPL | <%= @Sed_Set_Node_Service_Host %>) ;
@@ -126,24 +126,24 @@ spec:
            PUB_KEY=$(cat $DDIR/tm.pub)
            CONFIG_FINAL=$(echo $CONFIG_WITH_ALL_HOSTS | sed \"s-%THIS_PRIV_KEY%-${PRIV_KEY}-g\" |  sed \"s-%THIS_PUB_KEY%-${PUB_KEY}-g\");
            CONFIG_FINAL_9_0=$(echo $CONFIG_WITH_ALL_HOSTS | sed \"s-%THIS_PRIV_KEY%-${DDIR}/tm.key-g\" |  sed \"s-%THIS_PUB_KEY%-${DDIR}/tm.pub-g\");
-           if [[ \"${TESSERA_VERSION}\" \\> \"0.9 \" ]]; then CONFIG_FINAL=${CONFIG_FINAL_9_0}; fi;
-           echo $CONFIG_FINAL >  ${DDIR}/tessera-config-with-hosts.json;
-           cat  ${DDIR}/tessera-config-with-hosts.json;
-           /usr/local/bin/blackbox -configfile ${DDIR}/tessera-config-with-hosts.json;
+           if [[ \"${BLACKBOX_VERSION}\" \\> \"0.9 \" ]]; then CONFIG_FINAL=${CONFIG_FINAL_9_0}; fi;
+           echo $CONFIG_FINAL >  ${DDIR}/blackbox-config-with-hosts.json;
+           cat  ${DDIR}/blackbox-config-with-hosts.json;
+           /usr/local/bin/blackbox -configfile ${DDIR}/blackbox-config-with-hosts.json;
         "
         ports:
           - containerPort: <%= @Tm_Port %>
         env:
-          - name: QUORUM_HOME
+          - name: SMILO_HOME
             value: <%= @Node_DataDir %>
           - name: DDIR
             value: <%= @Node_DataDir %>/tm
         volumeMounts:
-        - name: quorum-logs-persistent-storage
+        - name: smilo-logs-persistent-storage
           mountPath: <%= @Node_DataDir %>/logs
         - name: tm-persistent-storage
           mountPath: <%= @Node_DataDir %>/tm
-        - name: quorum-persistent-storage
+        - name: smilo-persistent-storage
           mountPath: <%= @Node_DataDir %>
         - name: keystore-tm
           mountPath: <%= @Node_DataDir %>/tm/tm.pub
@@ -151,40 +151,40 @@ spec:
         - name: keystore-tm
           mountPath: <%= @Node_DataDir %>/tm/tm.key
           subPath: tm.key
-        - name: tessera-config
-          mountPath: <%= @Node_DataDir %>/tm/tessera-config.json.tmpl
-          subPath: tessera-config.json.tmpl
-      - name: quorum
-        image: quay.io/smilo/go-smilo:<%= @Quorum_Version %>
+        - name: blackbox-config
+          mountPath: <%= @Node_DataDir %>/tm/blackbox-config.json.tmpl
+          subPath: blackbox-config.json.tmpl
+      - name: smilo
+        image: quay.io/smilo/go-smilo:<%= @Smilo_Version %>
         command: [ "sh" ]
         # TODO: have to generate sed files
-        #       PERM_NODE_JSON=$(echo $PERM_NODE_TMPL | sed \"s/%QUORUM-NODE01_SERVICE_HOST%/$QUORUM_NODE01_SERVICE_HOST/g\" | sed \"s/%QUORUM-NODE02_SERVICE_HOST%/$QUORUM_NODE02_SERVICE_HOST/g\");
+        #       PERM_NODE_JSON=$(echo $PERM_NODE_TMPL | sed \"s/%SMILO-NODE01_SERVICE_HOST%/$SMILO_NODE01_SERVICE_HOST/g\" | sed \"s/%SMILO-NODE02_SERVICE_HOST%/$SMILO_NODE02_SERVICE_HOST/g\");
         # sleep to give constellation some time to start up and discover the other nodes.
         args:
         - "-cx"
         - "
-         <% if @config["quorum"]["consensus"] == "istanbul" %>
+         <% if @config["smilo"]["consensus"] == "smilobft" %>
            sleep 5;
-           PERM_NODE_TMPL=$(cat $QUORUM_DATA_DIR/permissioned-nodes.json.tmpl);
-           PERM_NODE_JSON=$(echo $PERM_NODE_TMPL |  sed \"s/%QUORUM-NODE1_SERVICE_HOST%/$QUORUM_NODE1_SERVICE_HOST/g\" |  sed \"s/%QUORUM-NODE2_SERVICE_HOST%/$QUORUM_NODE2_SERVICE_HOST/g\" |  sed \"s/%QUORUM-NODE3_SERVICE_HOST%/$QUORUM_NODE3_SERVICE_HOST/g\" |  sed \"s/%QUORUM-NODE4_SERVICE_HOST%/$QUORUM_NODE4_SERVICE_HOST/g\" |  sed \"s/%QUORUM-NODE5_SERVICE_HOST%/$QUORUM_NODE5_SERVICE_HOST/g\" |  sed \"s/%QUORUM-NODE6_SERVICE_HOST%/$QUORUM_NODE6_SERVICE_HOST/g\" |  sed \"s/%QUORUM-NODE7_SERVICE_HOST%/$QUORUM_NODE7_SERVICE_HOST/g\" );
-           echo $PERM_NODE_JSON >  $QUORUM_DATA_DIR/permissioned-nodes.json;
-           cp $QUORUM_DATA_DIR/permissioned-nodes.json $QUORUM_DATA_DIR/static-nodes.json;
+           PERM_NODE_TMPL=$(cat $SMILO_DATA_DIR/permissioned-nodes.json.tmpl);
+           PERM_NODE_JSON=$(echo $PERM_NODE_TMPL |  sed \"s/%SMILO-NODE1_SERVICE_HOST%/$SMILO_NODE1_SERVICE_HOST/g\" |  sed \"s/%SMILO-NODE2_SERVICE_HOST%/$SMILO_NODE2_SERVICE_HOST/g\" |  sed \"s/%SMILO-NODE3_SERVICE_HOST%/$SMILO_NODE3_SERVICE_HOST/g\" |  sed \"s/%SMILO-NODE4_SERVICE_HOST%/$SMILO_NODE4_SERVICE_HOST/g\" |  sed \"s/%SMILO-NODE5_SERVICE_HOST%/$SMILO_NODE5_SERVICE_HOST/g\" |  sed \"s/%SMILO-NODE6_SERVICE_HOST%/$SMILO_NODE6_SERVICE_HOST/g\" |  sed \"s/%SMILO-NODE7_SERVICE_HOST%/$SMILO_NODE7_SERVICE_HOST/g\" );
+           echo $PERM_NODE_JSON >  $SMILO_DATA_DIR/permissioned-nodes.json;
+           cp $SMILO_DATA_DIR/permissioned-nodes.json $SMILO_DATA_DIR/static-nodes.json;
 
-           rm -r /etc/quorum/qdata/contracts-tmp;
+           rm -r /etc/smilo/sdata/contracts-tmp;
 
            echo what in this dir;
-           ls  $QUORUM_DATA_DIR;
-           cat /etc/quorum/genesis/genesis-geth.json;
+           ls  $SMILO_DATA_DIR;
+           cat /etc/smilo/genesis/genesis-geth.json;
 
-           chmod 644 $QUORUM_DATA_DIR/keystore/key;
-           touch $QUORUM_DATA_DIR/password.txt;
+           chmod 644 $SMILO_DATA_DIR/keystore/key;
+           touch $SMILO_DATA_DIR/password.txt;
 
            args=\" --smilobft.permissioned=true --smilobft.blockperiod 1 --smilobft.requesttimeout 10000 --syncmode full --mine --miner.gasprice 1 --miner.threads 1 --rpcapi admin,db,eth,debug,miner,net,shh,txpool,personal,web3,smilobft,sport  \";
          <% else %>
            args=\"--rpcapi admin,db,eth,debug,miner,net,shh,txpool,personal,web3,smilobft,sport \";
          <% end %>
            VAULT_IPC=<%= @Node_DataDir %>/tm/tm.ipc /usr/local/bin/geth \
-           --datadir $QUORUM_DATA_DIR \
+           --datadir $SMILO_DATA_DIR \
            $args \
            --verbosity <%= @Geth_Verbosity %> \
            --allow-insecure-unlock \
@@ -194,47 +194,47 @@ spec:
            --rpcport <%= @Node_WSPort %> \
            --port <%= @NodeP2P_ListenAddr %> \
            <%= @Geth_Startup_Params %> \
-           --password $QUORUM_DATA_DIR/password.txt 2>&1 | tee -a <%= @Node_DataDir%>/logs/quorum.log;"
+           --password $SMILO_DATA_DIR/password.txt 2>&1 | tee -a <%= @Node_DataDir%>/logs/smilo.log;"
         ports:
           - containerPort: <%= @Node_WSPort %>
           - containerPort: <%= @NodeP2P_ListenAddr %>
         env:
         - name: PRIVATE_CONFIG
           value: <%= @Node_DataDir %>/tm/tm.ipc
-        - name: QUORUM_DATA_DIR
+        - name: SMILO_DATA_DIR
           value: <%= @Node_DataDir %>/dd
-        - name: QUORUM_HOME
+        - name: SMILO_HOME
           value: <%= @Node_DataDir %>
-        - name: QHOME
+        - name: SHOME
           value: <%= @Node_DataDir %>
         - name: TM_HOME
           value: <%= @Node_DataDir %>/tm/
         volumeMounts:
         - name: genesis-config-persistent-storage
-          mountPath: /etc/quorum/genesis/genesis-geth.json
+          mountPath: /etc/smilo/genesis/genesis-geth.json
           subPath: genesis-geth.json
-        - name: quorum-persistent-storage
+        - name: smilo-persistent-storage
           mountPath: <%= @Node_DataDir%>
         - name: tm-persistent-storage
           mountPath: <%= @Node_DataDir%>/tm
-        - name: quorum-key-config-persistent-storage
+        - name: smilo-key-config-persistent-storage
           mountPath: <%= @Node_DataDir%>/dd/keystore/key
           subPath: key
-        - name: quorum-logs-persistent-storage
+        - name: smilo-logs-persistent-storage
           mountPath: <%= @Node_DataDir %>/logs
-        - name: quorum-nodekey
+        - name: smilo-nodekey
           mountPath: <%= @Node_DataDir%>/dd/geth/nodekey
           subPath: nodekey
-        - name: quorum-permissioned-config
+        - name: smilo-permissioned-config
           mountPath: <%= @Node_DataDir%>/dd/permissioned-nodes.json.tmpl
           subPath: permissioned-nodes.json
-        - name: quorum-permissioned-config
+        - name: smilo-permissioned-config
           mountPath: <%= @Node_DataDir%>/dd/static-nodes.json.tmpl
           subPath: permissioned-nodes.json
       volumes:
-      - name: quorum-permissioned-config
+      - name: smilo-permissioned-config
         configMap:
-          name: quorum-permissioned-config
+          name: smilo-permissioned-config
           items:
           - key: permissioned-nodes.json
             path: permissioned-nodes.json
@@ -244,16 +244,12 @@ spec:
           items:
           - key: genesis-geth.json
             path: genesis-geth.json
-      - name: tessera-config
+      - name: blackbox-config
         configMap:
-          name: tessera-config
+          name: blackbox-config
           items:
-          - key: tessera-config.json.tmpl
-            path: tessera-config.json.tmpl
-      #     - key: tessera-config-enhanced.json.tmpl
-      #       path: tessera-config-enhanced.json.tmpl
-      #     - key: tessera-config-9.0.json.tmpl
-      #       path: tessera-config-9.0.json.tmpl
+          - key: blackbox-config.json.tmpl
+            path: blackbox-config.json.tmpl
       - name: contracts-config
         configMap:
           name: contracts-config
@@ -265,13 +261,13 @@ spec:
             path: tm.pub
           - key: tm.key
             path: tm.key
-      - name: quorum-key-config-persistent-storage
+      - name: smilo-key-config-persistent-storage
         configMap:
           name: <%= @Node_UserIdent %>-account-key-config
           items:
           - key: key
             path: key
-      - name: quorum-nodekey
+      - name: smilo-nodekey
         configMap:
           name: <%= @Node_UserIdent %>-nodekey-config
           items:
@@ -279,24 +275,24 @@ spec:
             path: nodekey
       # PVC (configurable) https://kubernetes.io/docs/concepts/storage/persistent-volumes/#claims-as-volumes
      <% if @Storage_Type == "PVC" %>
-      - name: quorum-persistent-storage
+      - name: smilo-persistent-storage
         persistentVolumeClaim:
-          claimName: <%= @Node_UserIdent %>-quorum
+          claimName: <%= @Node_UserIdent %>-smilo
       - name: tm-persistent-storage
         persistentVolumeClaim:
           claimName: <%= @Node_UserIdent %>-tm-pvc
-      - name: quorum-logs-persistent-storage
+      - name: smilo-logs-persistent-storage
         persistentVolumeClaim:
           claimName: <%= @Node_UserIdent %>-log-pvc
       # default is Host if not set.
       <% else %>
-      - name: quorum-persistent-storage
+      - name: smilo-persistent-storage
         hostPath:
           path: <%= @DataDir%>/<%= @Node_UserIdent %>
       - name: tm-persistent-storage
         hostPath:
           path: <%= @DataDir%>/tm-<%= @Node_UserIdent %>
-      - name: quorum-logs-persistent-storage
+      - name: smilo-logs-persistent-storage
         hostPath:
           path: <%= @DataDir%>/<%= @Node_UserIdent %>-logs
       <% end %>

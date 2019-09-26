@@ -4,20 +4,20 @@
 apiVersion: v1
 kind: Namespace
 metadata:
-  name: quorum-test
+  name: smilo-test
   labels:
-    name: quorum-test
+    name: smilo-test
 
 ---
 # kubectl create configmap game-config --from-file=configure-pod-container/dd1/key
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: quorum-permissioned-config
-  namespace: quorum-test
+  name: smilo-permissioned-config
+  namespace: smilo-test
   labels:
-    app: qubernetes
-    name: quorum-permissioned-config
+    app: kubernetes-smilo
+    name: smilo-permissioned-config
 data:
   permissioned-nodes.json: |
 
@@ -27,31 +27,31 @@ data:
     [
     
         
-           "enode://6ccba0a9573971c0041f7c6aa0902d5813f690b0c6cb92ba7e41303f3ed9be41fd3ef786ae2f16d09fd47ef2063b4703a3595ae728dc231bb6b1e999967cda8f@%QUORUM-NODE1_SERVICE_HOST%:21000",
+           "enode://db278ac595b08c2f1141835f737f6dbb618fdd87f47ec29f543856a1c91a375e74262277d2649d05f8dc2a040ce72e7761396c2a329ffd8f99ff8127604e3036@%SMILO-NODE1_SERVICE_HOST%:21000",
     
     
         
-           "enode://0ab9f4fbf8d3775422392bbb531d8fabd5adee6eebb102463ad531090d1714ef07f19e56bbea643e1e549ec9ad869f7b80225d8210a2eed31b2600361682bfd2@%QUORUM-NODE2_SERVICE_HOST%:21000",
+           "enode://129eefda122436fbaa48d4e011ecf97cb3fc92151341494b120267e752c4b7cafe7206755a408adab57f54eceb547b159551d3064234dea7fccd7f58451cdac5@%SMILO-NODE2_SERVICE_HOST%:21000",
     
     
         
-           "enode://4115244d00f53dbebd87c213d492de2532ddda96ca22acc9aee4fb68f817f2f1e0d0dc564bdde65ffea95c01cc9e7dc5798cdeef5301b1d7bc98636075f27a66@%QUORUM-NODE3_SERVICE_HOST%:21000",
+           "enode://02480aa7949e9a7c16d8f5d61ee40d45f388d320ad84a068ee600b0bee64d4fce3376365953a935fc115f46525384bc12cca957e7de8a606ac7bad1c954dc35e@%SMILO-NODE3_SERVICE_HOST%:21000",
     
     
         
-           "enode://b74378d132787865e88a06ab4947a65ca2b8bff4f75e3ed163ead250ee3bf39ce77042b0659458491b18e7a57e1a1ab6e6db7d3ea6e224937f2bb990af3a5aa4@%QUORUM-NODE4_SERVICE_HOST%:21000",
+           "enode://3145b8df8373d9ad8858e0409272ec65223db6f9a97a8d061cb3ed2c242b254d37a06be117d4f0bc9907e32cd08ff20646c749f5071bf86679860cc07145fe28@%SMILO-NODE4_SERVICE_HOST%:21000",
     
     
         
-           "enode://7b324a686fa0d01f37cc34c917ddf34811e6b663c1e843fdec7176d81d722c9d72e55af2bca869d32b41575f80bcd9662546d10fe5d0a105b4d19aa0adf3b3d8@%QUORUM-NODE5_SERVICE_HOST%:21000",
+           "enode://2dac12f76ce1ca753ac3fb6c6226583cec9ee4dfa3b9f5c85c4cc5f05aeba629f8259c74a816519f2b5a908116eb42a21474a124effb9a1adc7d675414167130@%SMILO-NODE5_SERVICE_HOST%:21000",
     
     
         
-           "enode://31e01b5d59cd0d61ff567545b0c9ed5f129410053e6b1c608b126b184857f56f6cec3befc36472c23a93e6bbb5e9ca2367c3615835a16e2e537f7e28193a2034@%QUORUM-NODE6_SERVICE_HOST%:21000",
+           "enode://033b5248d6d52be088d8e633640aac5cbd49694f6534a1a54003f064603d43262b671c0a5e73ca94beb8fdca099eb8e3d2b8f56fda3e5337acfca7514f5e13b8@%SMILO-NODE6_SERVICE_HOST%:21000",
     
     
         
-           "enode://60e3282c5a896cca8210837ca1aae62e4ff8f53f826015954a5b07fdf4d6c63b58f15e066e4d71d745c67de8b84ea72ac477475f35d77e589bf4dc9cee368baa@%QUORUM-NODE7_SERVICE_HOST%:21000"
+           "enode://d55e928d77f224a9790332a42a91680390b1ef7397d32dc4516aac293aceb383be737893dd7c52506866bb9edfe0915e41e13d9609c356f9729153483561d367@%SMILO-NODE7_SERVICE_HOST%:21000"
     
     ]
 
@@ -60,9 +60,9 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: genesis-config
-  namespace: quorum-test
+  namespace: smilo-test
   labels:
-    app: qubernetes
+    app: kubernetes-smilo
     name: genesis-config
 data:
   genesis-geth.json: |-
@@ -93,7 +93,7 @@ data:
       },
     
     
-      "extraData": "0x0000000000000000000000000000000000000000000000000000000000000000f8d9f8939422ec64a8dec7c56f219772e6e640e413b9729262947feec4ed303855a2d303822a4d0b420e6b80340f945d9511d7dd970ba96308d6a88f5825b5f37c358894f7a404066d3d34c13888438f60e914b9171cf966947bdc39d578e69e0ddda7f12a7ac9bdcebe98e4d09409682f94653c8fb8e11efccd4c3f84eacdb28e76946948112a6d49ed63551396984e7035bc6754d2feb8410000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000c0",
+      "extraData": "0x0000000000000000000000000000000000000000000000000000000000000000f8d9f893945479a6edd4fddeb099c7d3a44da3e7363415c5d6943f71b7aac8437ace8e065bb973859bd2c09a808e945445fb5701dc05ac59495645319a2b9004f680be94c51445629b95c272f021d9ee5a567cb8a4a8f8ab9449b94ee08ce0d6a8e08a18ee54440718ae4b094d94197e60ac2b838b0e2cf54f1a5b75f3157097b57c94369c075ffe7f22085816662fa919646c08a9f913b8410000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000c0",
       "gasLimit": "0x47b760",
       "difficulty": "0x1",
       "mixHash": "0x636861696e20706c6174666f726d2077697468206120636f6e736369656e6365",
@@ -107,13 +107,13 @@ data:
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: tessera-config
-  namespace: quorum-test
+  name: blackbox-config
+  namespace: smilo-test
   labels:
-    app: qubernetes
-    name: tessera-config
+    app: kubernetes-smilo
+    name: blackbox-config
 data:
-  tessera-config.json.tmpl: |-
+  blackbox-config.json.tmpl: |-
     
     
     
@@ -126,54 +126,54 @@ data:
             "sslConfig": {
                 "tls": "OFF",
                 "generateKeyStoreIfNotExisted": true,
-                "serverKeyStore": "/etc/quorum/qdata/tm/server-keystore",
+                "serverKeyStore": "/etc/smilo/sdata/tm/server-keystore",
                 "serverKeyStorePassword": "smilo",
-                "serverTrustStore": "/etc/quorum/qdata/tm/server-truststore",
+                "serverTrustStore": "/etc/smilo/sdata/tm/server-truststore",
                 "serverTrustStorePassword": "smilo",
                 "serverTrustMode": "TOFU",
-                "knownClientsFile": "/etc/quorum/qdata/tm/knownClients",
-                "clientKeyStore": "/etc/quorum/qdata/tm/client-keystore",
+                "knownClientsFile": "/etc/smilo/sdata/tm/knownClients",
+                "clientKeyStore": "/etc/smilo/sdata/tm/client-keystore",
                 "clientKeyStorePassword": "smilo",
-                "clientTrustStore": "/etc/quorum/qdata/tm/client-truststore",
+                "clientTrustStore": "/etc/smilo/sdata/tm/client-truststore",
                 "clientTrustStorePassword": "smilo",
                 "clientTrustMode": "TOFU",
-                "knownServersFile": "/etc/quorum/qdata/tm/knownServers"
+                "knownServersFile": "/etc/smilo/sdata/tm/knownServers"
             }
         },
         "peer": [
     
              {
-               "url": "http://%QUORUM-NODE1_SERVICE_HOST%:9001"
+               "url": "http://%SMILO-NODE1_SERVICE_HOST%:9001"
              },
     
     
              {
-               "url": "http://%QUORUM-NODE2_SERVICE_HOST%:9001"
+               "url": "http://%SMILO-NODE2_SERVICE_HOST%:9001"
              },
     
     
              {
-               "url": "http://%QUORUM-NODE3_SERVICE_HOST%:9001"
+               "url": "http://%SMILO-NODE3_SERVICE_HOST%:9001"
              },
     
     
              {
-               "url": "http://%QUORUM-NODE4_SERVICE_HOST%:9001"
+               "url": "http://%SMILO-NODE4_SERVICE_HOST%:9001"
              },
     
     
              {
-               "url": "http://%QUORUM-NODE5_SERVICE_HOST%:9001"
+               "url": "http://%SMILO-NODE5_SERVICE_HOST%:9001"
              },
     
     
              {
-               "url": "http://%QUORUM-NODE6_SERVICE_HOST%:9001"
+               "url": "http://%SMILO-NODE6_SERVICE_HOST%:9001"
              },
     
     
              {
-               "url": "http://%QUORUM-NODE7_SERVICE_HOST%:9001"
+               "url": "http://%SMILO-NODE7_SERVICE_HOST%:9001"
              }
     
         ],
@@ -181,15 +181,15 @@ data:
             "passwords": [],
             "keyData": [
                 {
-                    "config": "/etc/quorum/qdata/tm/tm.key",
-                    "publicKey": "/etc/quorum/qdata/tm/tm.pub"
+                    "config": "/etc/smilo/sdata/tm/tm.key",
+                    "publicKey": "/etc/smilo/sdata/tm/tm.pub"
                 }
             ]
         },
         "alwaysSendTo": [],
-        "socket": "/etc/quorum/qdata/tm/tm.ipc",
-        "dbfile": "/etc/quorum/qdata/tm/blackbox.db",
-        "peersdbfile": "/etc/quorum/qdata/tm/blackbox-peers.db"
+        "socket": "/etc/smilo/sdata/tm/tm.ipc",
+        "dbfile": "/etc/smilo/sdata/tm/blackbox.db",
+        "peersdbfile": "/etc/smilo/sdata/tm/blackbox-peers.db"
     }
     
 
@@ -198,14 +198,14 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: contracts-config
-  namespace: quorum-test
+  namespace: smilo-test
   labels:
-    app: qubernetes
+    app: kubernetes-smilo
     name: contracts-config
 data:
   runscript.sh: |-
     #!/bin/ash
-    PRIVATE_CONFIG=$TM_HOME/tm.ipc geth --exec "loadScript(\"$1\")" attach ipc:$QUORUM_HOME/dd/geth.ipc
+    PRIVATE_CONFIG=$TM_HOME/tm.ipc geth --exec "loadScript(\"$1\")" attach ipc:$SMILO_HOME/dd/geth.ipc
 # set the tm.pub for node2 in the privateFor field.
 # assumes that at least 2 nodes are being deployed.
   private_contract.js: |-
@@ -220,7 +220,7 @@ data:
     var bytecode = "0x6060604052341561000f57600080fd5b604051602080610149833981016040528080519060200190919050505b806000819055505b505b610104806100456000396000f30060606040526000357c0100000000000000000000000000000000000000000000000000000000900463ffffffff1680632a1afcd914605157806360fe47b11460775780636d4ce63c146097575b600080fd5b3415605b57600080fd5b606160bd565b6040518082815260200191505060405180910390f35b3415608157600080fd5b6095600480803590602001909190505060c3565b005b341560a157600080fd5b60a760ce565b6040518082815260200191505060405180910390f35b60005481565b806000819055505b50565b6000805490505b905600a165627a7a72305820d5851baab720bba574474de3d09dbeaabc674a15f4dd93b974908476542c23f00029";
     
     var simpleContract = web3.eth.contract(abi);
-    var simple = simpleContract.new(42, {from:web3.eth.accounts[0], data: bytecode, gas: 0x47b760, sharedWith: ["4bo0nA4vuchdcdvb60CADSWW+WBInESifRMsX/gmdyI="]}, function(e, contract) {
+    var simple = simpleContract.new(42, {from:web3.eth.accounts[0], data: bytecode, gas: 0x47b760, gasPrice:0, sharedWith: ["JvMmCGTlrrdt4YcPVRMSCl989KvwzJtaV+xT1XfP9kw="]}, function(e, contract) {
     	if (e) {
     		console.log("err creating contract", e);
     	} else {
@@ -243,7 +243,7 @@ data:
     var bytecode = "0x6060604052341561000f57600080fd5b604051602080610149833981016040528080519060200190919050505b806000819055505b505b610104806100456000396000f30060606040526000357c0100000000000000000000000000000000000000000000000000000000900463ffffffff1680632a1afcd914605157806360fe47b11460775780636d4ce63c146097575b600080fd5b3415605b57600080fd5b606160bd565b6040518082815260200191505060405180910390f35b3415608157600080fd5b6095600480803590602001909190505060c3565b005b341560a157600080fd5b60a760ce565b6040518082815260200191505060405180910390f35b60005481565b806000819055505b50565b6000805490505b905600a165627a7a72305820d5851baab720bba574474de3d09dbeaabc674a15f4dd93b974908476542c23f00029";
     
     var simpleContract = web3.eth.contract(abi);
-    var simple = simpleContract.new(42, {from:web3.eth.accounts[0], data: bytecode, gas: 0x47b760}, function(e, contract) {
+    var simple = simpleContract.new(42, {from:web3.eth.accounts[0], data: bytecode, gas: 0x47b760, gasPrice:0}, function(e, contract) {
             if (e) {
                     console.log("err creating contract", e);
             } else {

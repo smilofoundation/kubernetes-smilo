@@ -5,8 +5,8 @@ def set_node_template_vars(values)
 end
 
 @Capacity = "1Gi"
-if @config["quorum"]["storage"]["Capacity"]
-  @Capacity = @config["quorum"]["storage"]["Capacity"]
+if @config["smilo"]["storage"]["Capacity"]
+  @Capacity = @config["smilo"]["storage"]["Capacity"]
 end
 
 -%>
@@ -18,7 +18,7 @@ end
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: <%= @Node_UserIdent %>-quorum
+  name: <%= @Node_UserIdent %>-smilo
 spec:
   accessModes:
     - ReadWriteOnce

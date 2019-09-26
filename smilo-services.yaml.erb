@@ -10,7 +10,7 @@ end
 
 <%
     @Service_Prefix        = (@Node_UserIdent.upcase).gsub("-", "_")
-    @TM_Port               = @config["quorum"]["tm"]["Port"]
+    @TM_Port               = @config["smilo"]["tm"]["Port"]
     @Node_WSPort           = @config["geth"]["Node_WSPort"]
     @NodeP2P_ListenAddr    = @config["geth"]["NodeP2P_ListenAddr"]
 %>
@@ -22,12 +22,12 @@ metadata:
   <%= @Namespace %>
   name: <%= @Node_UserIdent %>
   labels:
-    app: qubernetes
+    app: kubernetes-smilo
     tier: backend
     name: <%= @Node_UserIdent %>
 spec:
   selector:
-    app: qubernetes
+    app: kubernetes-smilo
     tier: backend
     name: <%= @Node_UserIdent %>-deployment
   # NodePort | ClusterIP
@@ -37,17 +37,11 @@ spec:
       protocol: TCP
       port: <%= @TM_Port %>
       targetPort: <%= @TM_Port %>
-    # default 8545
-    - name: tm-tessera-third-part
-      protocol: TCP
-      port: 9080
-      targetPort: 9080
-    # default 8545
     - name: wsrpc-listener
       protocol: TCP
       port: <%= @Node_WSPort %>
       targetPort: <%= @Node_WSPort %>
-    - name: quorum-listener
+    - name: smilo-listener
       protocol: TCP
       port: <%= @NodeP2P_ListenAddr %>
       targetPort: <%= @NodeP2P_ListenAddr %>

@@ -6,17 +6,17 @@
 apiVersion: v1
 kind: Service
 metadata:
-  namespace: quorum-test
-  name: quorum-node1
+  namespace: smilo-test
+  name: smilo-node1
   labels:
-    app: qubernetes
+    app: kubernetes-smilo
     tier: backend
-    name: quorum-node1
+    name: smilo-node1
 spec:
   selector:
-    app: qubernetes
+    app: kubernetes-smilo
     tier: backend
-    name: quorum-node1-deployment
+    name: smilo-node1-deployment
   # NodePort | ClusterIP
   type: ClusterIP
   ports:
@@ -24,17 +24,11 @@ spec:
       protocol: TCP
       port: 9001
       targetPort: 9001
-    # default 8545
-    - name: tm-tessera-third-part
-      protocol: TCP
-      port: 9080
-      targetPort: 9080
-    # default 8545
     - name: wsrpc-listener
       protocol: TCP
       port: 8546
       targetPort: 8546
-    - name: quorum-listener
+    - name: smilo-listener
       protocol: TCP
       port: 21000
       targetPort: 21000
@@ -45,17 +39,17 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  namespace: quorum-test
-  name: quorum-node2
+  namespace: smilo-test
+  name: smilo-node2
   labels:
-    app: qubernetes
+    app: kubernetes-smilo
     tier: backend
-    name: quorum-node2
+    name: smilo-node2
 spec:
   selector:
-    app: qubernetes
+    app: kubernetes-smilo
     tier: backend
-    name: quorum-node2-deployment
+    name: smilo-node2-deployment
   # NodePort | ClusterIP
   type: ClusterIP
   ports:
@@ -63,17 +57,11 @@ spec:
       protocol: TCP
       port: 9001
       targetPort: 9001
-    # default 8545
-    - name: tm-tessera-third-part
-      protocol: TCP
-      port: 9080
-      targetPort: 9080
-    # default 8545
     - name: wsrpc-listener
       protocol: TCP
       port: 8546
       targetPort: 8546
-    - name: quorum-listener
+    - name: smilo-listener
       protocol: TCP
       port: 21000
       targetPort: 21000
@@ -84,17 +72,17 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  namespace: quorum-test
-  name: quorum-node3
+  namespace: smilo-test
+  name: smilo-node3
   labels:
-    app: qubernetes
+    app: kubernetes-smilo
     tier: backend
-    name: quorum-node3
+    name: smilo-node3
 spec:
   selector:
-    app: qubernetes
+    app: kubernetes-smilo
     tier: backend
-    name: quorum-node3-deployment
+    name: smilo-node3-deployment
   # NodePort | ClusterIP
   type: ClusterIP
   ports:
@@ -102,17 +90,11 @@ spec:
       protocol: TCP
       port: 9001
       targetPort: 9001
-    # default 8545
-    - name: tm-tessera-third-part
-      protocol: TCP
-      port: 9080
-      targetPort: 9080
-    # default 8545
     - name: wsrpc-listener
       protocol: TCP
       port: 8546
       targetPort: 8546
-    - name: quorum-listener
+    - name: smilo-listener
       protocol: TCP
       port: 21000
       targetPort: 21000
@@ -123,17 +105,17 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  namespace: quorum-test
-  name: quorum-node4
+  namespace: smilo-test
+  name: smilo-node4
   labels:
-    app: qubernetes
+    app: kubernetes-smilo
     tier: backend
-    name: quorum-node4
+    name: smilo-node4
 spec:
   selector:
-    app: qubernetes
+    app: kubernetes-smilo
     tier: backend
-    name: quorum-node4-deployment
+    name: smilo-node4-deployment
   # NodePort | ClusterIP
   type: ClusterIP
   ports:
@@ -141,17 +123,11 @@ spec:
       protocol: TCP
       port: 9001
       targetPort: 9001
-    # default 8545
-    - name: tm-tessera-third-part
-      protocol: TCP
-      port: 9080
-      targetPort: 9080
-    # default 8545
     - name: wsrpc-listener
       protocol: TCP
       port: 8546
       targetPort: 8546
-    - name: quorum-listener
+    - name: smilo-listener
       protocol: TCP
       port: 21000
       targetPort: 21000
@@ -162,17 +138,17 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  namespace: quorum-test
-  name: quorum-node5
+  namespace: smilo-test
+  name: smilo-node5
   labels:
-    app: qubernetes
+    app: kubernetes-smilo
     tier: backend
-    name: quorum-node5
+    name: smilo-node5
 spec:
   selector:
-    app: qubernetes
+    app: kubernetes-smilo
     tier: backend
-    name: quorum-node5-deployment
+    name: smilo-node5-deployment
   # NodePort | ClusterIP
   type: ClusterIP
   ports:
@@ -180,17 +156,11 @@ spec:
       protocol: TCP
       port: 9001
       targetPort: 9001
-    # default 8545
-    - name: tm-tessera-third-part
-      protocol: TCP
-      port: 9080
-      targetPort: 9080
-    # default 8545
     - name: wsrpc-listener
       protocol: TCP
       port: 8546
       targetPort: 8546
-    - name: quorum-listener
+    - name: smilo-listener
       protocol: TCP
       port: 21000
       targetPort: 21000
@@ -201,17 +171,17 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  namespace: quorum-test
-  name: quorum-node6
+  namespace: smilo-test
+  name: smilo-node6
   labels:
-    app: qubernetes
+    app: kubernetes-smilo
     tier: backend
-    name: quorum-node6
+    name: smilo-node6
 spec:
   selector:
-    app: qubernetes
+    app: kubernetes-smilo
     tier: backend
-    name: quorum-node6-deployment
+    name: smilo-node6-deployment
   # NodePort | ClusterIP
   type: ClusterIP
   ports:
@@ -219,17 +189,11 @@ spec:
       protocol: TCP
       port: 9001
       targetPort: 9001
-    # default 8545
-    - name: tm-tessera-third-part
-      protocol: TCP
-      port: 9080
-      targetPort: 9080
-    # default 8545
     - name: wsrpc-listener
       protocol: TCP
       port: 8546
       targetPort: 8546
-    - name: quorum-listener
+    - name: smilo-listener
       protocol: TCP
       port: 21000
       targetPort: 21000
@@ -240,17 +204,17 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  namespace: quorum-test
-  name: quorum-node7
+  namespace: smilo-test
+  name: smilo-node7
   labels:
-    app: qubernetes
+    app: kubernetes-smilo
     tier: backend
-    name: quorum-node7
+    name: smilo-node7
 spec:
   selector:
-    app: qubernetes
+    app: kubernetes-smilo
     tier: backend
-    name: quorum-node7-deployment
+    name: smilo-node7-deployment
   # NodePort | ClusterIP
   type: ClusterIP
   ports:
@@ -258,17 +222,11 @@ spec:
       protocol: TCP
       port: 9001
       targetPort: 9001
-    # default 8545
-    - name: tm-tessera-third-part
-      protocol: TCP
-      port: 9080
-      targetPort: 9080
-    # default 8545
     - name: wsrpc-listener
       protocol: TCP
       port: 8546
       targetPort: 8546
-    - name: quorum-listener
+    - name: smilo-listener
       protocol: TCP
       port: 21000
       targetPort: 21000

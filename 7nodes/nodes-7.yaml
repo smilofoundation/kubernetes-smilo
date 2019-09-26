@@ -33,6 +33,3 @@ nodes:
     Node_UserIdent: quorum-node7
     Key_Dir: key7
 
-- member:
-      Node_UserIdent: quorum-node8
-      Key_Dir: key8

@@ -24,7 +24,7 @@ quorum:
   tm:
     # (tessera|constellation)
     Name: tessera
-    Tm_Version: v1.0.3
+    Tm_Version: v1.0.4
     Port: 9001
     Tessera_Config_Dir: 7nodes
 

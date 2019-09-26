@@ -1,5 +1,6 @@
 
 
+
 apiVersion: v1
 kind: Namespace
 metadata:
@@ -26,31 +27,31 @@ data:
     [
     
         
-           "enode://ac6b1096ca56b9f6d004b779ae3728bf83f8e22453404cc3cef16a3d9b96608bc67c4b30db88e0a5a6c6390213f7acbe1153ff6d23ce57380104288ae19373ef@%QUORUM-NODE1_SERVICE_HOST%:21000?discport=0&raftport=50401",
+           "enode://054948a646edfe221ab2c9bc71ef87f618d91209026ccd355ed28a679312a234cdc6992f62d25f8fb9877ee4dd253687139bc37d2222cac2c864cbc174b76085@%QUORUM-NODE1_SERVICE_HOST%:21000",
     
     
         
-           "enode://0ba6b9f606a43a95edc6247cdb1c1e105145817be7bcafd6b2c0ba15d58145f0dc1a194f70ba73cd6f4cdd6864edc7687f311254c7555cc32e4d45aeb1b80416@%QUORUM-NODE2_SERVICE_HOST%:21000?discport=0&raftport=50401",
+           "enode://8fcebcbd7290cb40f69c4f87db5eca5fced2f5ef3b2f9a594a91eb105751dc033ca1dced66ac838be48210d5327378e5c5a6b224d12b96cdb44d0adb806458da@%QUORUM-NODE2_SERVICE_HOST%:21000",
     
     
         
-           "enode://579f786d4e2830bbcc02815a27e8a9bacccc9605df4dc6f20bcc1a6eb391e7225fff7cb83e5b4ecd1f3a94d8b733803f2f66b7e871961e7b029e22c155c3a778@%QUORUM-NODE3_SERVICE_HOST%:21000?discport=0&raftport=50401",
+           "enode://d29130f00d18c9f80aaa30613e1dbd06fd6c5190c3b2d83965d754113e7357ff12ac0058dc6e9926d584696af07de9ce81520fc1a60a0e33a72ba8aa64a2e613@%QUORUM-NODE3_SERVICE_HOST%:21000",
     
     
         
-           "enode://3d9ca5956b38557aba991e31cf510d4df641dce9cc26bfeb7de082f0c07abb6ede3a58410c8f249dabeecee4ad3979929ac4c7c496ad20b8cfdd061b7401b4f5@%QUORUM-NODE4_SERVICE_HOST%:21000?discport=0&raftport=50401",
+           "enode://c6656f1dab950f3fb7b7c803d714f7fc4b3db66c849da5e7eb3fff77f6d8186f42d05e30163575a87ce93c0ae198e63b1a36b7f90466944d3fb5e8e51f09f7a6@%QUORUM-NODE4_SERVICE_HOST%:21000",
     
     
         
-           "enode://3701f007bfa4cb26512d7df18e6bbd202e8484a6e11d387af6e482b525fa25542d46ff9c99db87bd419b980c24a086117a397f6d8f88e74351b41693880ea0cb@%QUORUM-NODE5_SERVICE_HOST%:21000?discport=0&raftport=50401",
+           "enode://6b45a468cd62444ac7d708fa8da4dff998aa69889c207b05e6a26a49c0c1bc02bac8ada214e0e734cb6df2199cc3631a41d604c5455174ed612b6fcf915d542d@%QUORUM-NODE5_SERVICE_HOST%:21000",
     
     
         
-           "enode://eacaa74c4b0e7a9e12d2fe5fee6595eda841d6d992c35dbbcc50fcee4aa86dfbbdeff7dc7e72c2305d5a62257f82737a8cffc80474c15c611c037f52db1a3a7b@%QUORUM-NODE6_SERVICE_HOST%:21000?discport=0&raftport=50401",
+           "enode://2a895c37f25c80f2b83983993bf3a5438003fe8de5b70322cc73e10ed52adb38e7ba6cd3c45e52d199651a7b6c6371982a5fa7a45f67cc1e3d6e862cb98b5f1f@%QUORUM-NODE6_SERVICE_HOST%:21000",
     
     
         
-           "enode://239c1f044a2b03b6c4713109af036b775c5418fe4ca63b04b1ce00124af00ddab7cc088fc46020cdc783b6207efe624551be4c06a994993d8d70f684688fb7cf@%QUORUM-NODE7_SERVICE_HOST%:21000?discport=0&raftport=50401"
+           "enode://dcfa3c83d2a949bfa840e63a4f474d9da385ab872c2da1636e801f5820ab1f669eaa2bd2c5bbd0151fa6a30ab6b24f2a1369624c61e53718f0d7ea7fec0406c1@%QUORUM-NODE7_SERVICE_HOST%:21000"
     
     ]
 
@@ -69,50 +70,33 @@ data:
     
     {
     "alloc": {
-        "0xed9d02e382b34818e88b88a309c7fe71e65f419d": {
-           "balance": "1000000000000000000000000000"
-        }, 
-        "0xca843569e3427144cead5e4d5999a3d0ccf92b8e": {
-           "balance": "1000000000000000000000000000"
-        }, 
-        "0x0fbdc686b912d7722dc86510934589e0aaf3b55a": {
-           "balance": "1000000000000000000000000000"
-        }, 
-        "0x9186eb3d20cbd1f5f992a950d808c4495153abd5": {
-           "balance": "1000000000000000000000000000"
-        }, 
-        "0x0638e1574728b6d862dd5d3a3e0942c3be47d996": {
-           "balance": "1000000000000000000000000000"
-        }, 
-        "0xae9bc6cd5145e67fbd1887a5145271fd182f0ee7": {
-           "balance": "1000000000000000000000000000"
-        }, 
-        "0xcc71c7546429a13796cf1bf9228bff213e7ae9cc": {
-           "balance": "1000000000000000000000000000"
-        }
-    
-    
       },
       "coinbase": "0x0000000000000000000000000000000000000000",
       "config": {
         "byzantiumBlock": 1,
-        "eip150Block": 2,
-        "eip150Hash": "0x0000000000000000000000000000000000000000000000000000000000000000",
-        "eip155Block": 3,
-        "eip158Block": 3,
-        "istanbul": {
+        "eip150block": 2,
+        "eip150hash": "0x0000000000000000000000000000000000000000000000000000000000000000",
+        "eip155block": 0,
+        "eip158block": 3,
+        "petersburgBlock": 4,
+        "constantinopleBlock": 5,
+        "sport": {
           "epoch": 30000,
-          "policy": 0
+          "policy": 0,
+          "minfunds": 20000
         },
-        "isQuorum": true,
-        "chainId": 10
+        "chainId": 10,
+        "isSmilo":true,
+        "isGas": true,
+        "isGasRefunded": true,
+        "required_min_funds": 1
       },
     
     
-      "extraData": "0x0000000000000000000000000000000000000000000000000000000000000000f8d9f89394d8dba507e85f116b1f7e231ca8525fc9008a6966946571d97f340c8495b661a823f2c2145ca47d63c294e36cbeb565b061217930767886474e3cde903ac594f512a992f3fb749857d758ffda1330e590fa915e94b912de287f9b047b4228436e94b5b78e3ee16171948157d4437104e3b8df4451a85f7b2438ef6699ff94b131288f355bc27090e542ae0be213c20350b767b8410000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000c0",
+      "extraData": "0x0000000000000000000000000000000000000000000000000000000000000000f8d9f8939445f25bed343c683bf432d13efe47e332d5998a8694e379246407680fceb385398ccd970dd53bb05063947de80c0eea4a9edd1ea14a61b07f7255cc71b93b9403352dc1c97aafe755845b80ac7fc9aeaa137ab094bc64965c360a9f3ebd37533a3aea34155bffcae494c9e6be65b5f2b4203d05a171bb1775b986be9c1b944fde1e4ee83772b59e7f7dca2e6a7825d3e51e34b8410000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000c0",
       "gasLimit": "0x47b760",
       "difficulty": "0x1",
-      "mixHash": "0x63746963616c2062797a616e74696e65206661756c7420746f6c6572616e6365",
+      "mixHash": "0x636861696e20706c6174666f726d2077697468206120636f6e736369656e6365",
       "nonce": "0x0",
       "parentHash": "0x0000000000000000000000000000000000000000000000000000000000000000",
       "timestamp": "0x00"
@@ -132,33 +116,26 @@ data:
   tessera-config.json.tmpl: |-
     
     
-    
-    
+
     {
         "useWhiteList": false,
-        "jdbc": {
-            "username": "sa",
-            "password": "",
-            "url": "jdbc:h2:/etc/quorum/qdata/tm/db;MODE=Oracle;TRACE_LEVEL_SYSTEM_OUT=0",
-            "autoCreateTables": true
-        },
         "server": {
             "port": 9001,
             "hostName": "http://%THIS_SERVICE_HOST%",
-            "bindingAddress": "http://0.0.0.0:9001",
+            "hostaddr": "0.0.0.0",
             "sslConfig": {
                 "tls": "OFF",
                 "generateKeyStoreIfNotExisted": true,
                 "serverKeyStore": "/etc/quorum/qdata/tm/server-keystore",
-                "serverKeyStorePassword": "quorum",
+                "serverKeyStorePassword": "smilo",
                 "serverTrustStore": "/etc/quorum/qdata/tm/server-truststore",
-                "serverTrustStorePassword": "quorum",
+                "serverTrustStorePassword": "smilo",
                 "serverTrustMode": "TOFU",
                 "knownClientsFile": "/etc/quorum/qdata/tm/knownClients",
                 "clientKeyStore": "/etc/quorum/qdata/tm/client-keystore",
-                "clientKeyStorePassword": "quorum",
+                "clientKeyStorePassword": "smilo",
                 "clientTrustStore": "/etc/quorum/qdata/tm/client-truststore",
-                "clientTrustStorePassword": "quorum",
+                "clientTrustStorePassword": "smilo",
                 "clientTrustMode": "TOFU",
                 "knownServersFile": "/etc/quorum/qdata/tm/knownServers"
             }
@@ -204,15 +181,18 @@ data:
             "passwords": [],
             "keyData": [
                 {
-                    "privateKeyPath": "/etc/quorum/qdata/tm/tm.key",
-                    "publicKeyPath": "/etc/quorum/qdata/tm/tm.pub"
+                    "config": "/etc/quorum/qdata/tm/tm.key",
+                    "publicKey": "/etc/quorum/qdata/tm/tm.pub"
                 }
             ]
         },
         "alwaysSendTo": [],
-        "unixSocketFile": "/etc/quorum/qdata/tm/tm.ipc"
+        "socket": "/etc/quorum/qdata/tm/tm.ipc",
+        "dbfile": "/etc/quorum/qdata/tm/blackbox.db",
+        "peersdbfile": "/etc/quorum/qdata/tm/blackbox-peers.db"
     }
     
+
 ---
 apiVersion: v1
 kind: ConfigMap
@@ -226,8 +206,10 @@ data:
   runscript.sh: |-
     #!/bin/ash
     PRIVATE_CONFIG=$TM_HOME/tm.ipc geth --exec "loadScript(\"$1\")" attach ipc:$QUORUM_HOME/dd/geth.ipc
-# TODO: replace "%TM_7_PK%" with actual node 7 tm pk key
+# set the tm.pub for node2 in the privateFor field.
+# assumes that at least 2 nodes are being deployed.
   private_contract.js: |-
+
     a = eth.accounts[0]
     web3.eth.defaultAccount = a;
     
@@ -238,7 +220,7 @@ data:
     var bytecode = "0x6060604052341561000f57600080fd5b604051602080610149833981016040528080519060200190919050505b806000819055505b505b610104806100456000396000f30060606040526000357c0100000000000000000000000000000000000000000000000000000000900463ffffffff1680632a1afcd914605157806360fe47b11460775780636d4ce63c146097575b600080fd5b3415605b57600080fd5b606160bd565b6040518082815260200191505060405180910390f35b3415608157600080fd5b6095600480803590602001909190505060c3565b005b341560a157600080fd5b60a760ce565b6040518082815260200191505060405180910390f35b60005481565b806000819055505b50565b6000805490505b905600a165627a7a72305820d5851baab720bba574474de3d09dbeaabc674a15f4dd93b974908476542c23f00029";
     
     var simpleContract = web3.eth.contract(abi);
-    var simple = simpleContract.new(42, {from:web3.eth.accounts[0], data: bytecode, gas: 0x47b760, privateFor: ["ROAZBWtSacxXQrOe3FGAqJDyJjFePR5ce4TSIzmJ0Bc="]}, function(e, contract) {
+    var simple = simpleContract.new(42, {from:web3.eth.accounts[0], data: bytecode, gas: 0x47b760, sharedWith: ["eZ4zW6N+moh8PIZj8mvc1S2uQoqeEZnux+B0DFe0x3w="]}, function(e, contract) {
     	if (e) {
     		console.log("err creating contract", e);
     	} else {

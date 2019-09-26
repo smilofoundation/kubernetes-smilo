@@ -17,6 +17,7 @@ spec:
     app: qubernetes
     tier: backend
     name: quorum-node1-deployment
+  # NodePort | ClusterIP
   type: ClusterIP
   ports:
     - name: tm-manager 
@@ -37,10 +38,6 @@ spec:
       protocol: TCP
       port: 21000
       targetPort: 21000
-    - name: raft
-      protocol: TCP
-      targetPort: 50401
-      port: 50401
     
 
 
@@ -59,6 +56,7 @@ spec:
     app: qubernetes
     tier: backend
     name: quorum-node2-deployment
+  # NodePort | ClusterIP
   type: ClusterIP
   ports:
     - name: tm-manager 
@@ -79,10 +77,6 @@ spec:
       protocol: TCP
       port: 21000
       targetPort: 21000
-    - name: raft
-      protocol: TCP
-      targetPort: 50401
-      port: 50401
     
 
 
@@ -101,6 +95,7 @@ spec:
     app: qubernetes
     tier: backend
     name: quorum-node3-deployment
+  # NodePort | ClusterIP
   type: ClusterIP
   ports:
     - name: tm-manager 
@@ -121,10 +116,6 @@ spec:
       protocol: TCP
       port: 21000
       targetPort: 21000
-    - name: raft
-      protocol: TCP
-      targetPort: 50401
-      port: 50401
     
 
 
@@ -143,6 +134,7 @@ spec:
     app: qubernetes
     tier: backend
     name: quorum-node4-deployment
+  # NodePort | ClusterIP
   type: ClusterIP
   ports:
     - name: tm-manager 
@@ -163,10 +155,6 @@ spec:
       protocol: TCP
       port: 21000
       targetPort: 21000
-    - name: raft
-      protocol: TCP
-      targetPort: 50401
-      port: 50401
     
 
 
@@ -185,6 +173,7 @@ spec:
     app: qubernetes
     tier: backend
     name: quorum-node5-deployment
+  # NodePort | ClusterIP
   type: ClusterIP
   ports:
     - name: tm-manager 
@@ -205,10 +194,6 @@ spec:
       protocol: TCP
       port: 21000
       targetPort: 21000
-    - name: raft
-      protocol: TCP
-      targetPort: 50401
-      port: 50401
     
 
 
@@ -227,6 +212,7 @@ spec:
     app: qubernetes
     tier: backend
     name: quorum-node6-deployment
+  # NodePort | ClusterIP
   type: ClusterIP
   ports:
     - name: tm-manager 
@@ -247,10 +233,6 @@ spec:
       protocol: TCP
       port: 21000
       targetPort: 21000
-    - name: raft
-      protocol: TCP
-      targetPort: 50401
-      port: 50401
     
 
 
@@ -269,6 +251,7 @@ spec:
     app: qubernetes
     tier: backend
     name: quorum-node7-deployment
+  # NodePort | ClusterIP
   type: ClusterIP
   ports:
     - name: tm-manager 
@@ -289,7 +272,3 @@ spec:
       protocol: TCP
       port: 21000
       targetPort: 21000
-    - name: raft
-      protocol: TCP
-      targetPort: 50401
-      port: 50401

@@ -98,6 +98,13 @@ spec:
       containers:
       - name: blackbox
         image: quay.io/smilo/smilo-blackbox:<%= @Tm_Version %>
+        resources:
+          limits:
+            cpu: "0.5"
+            memory: "1Gi"
+          requests:
+            cpu: "0.1"
+            memory: "100Mi"
         command: ["sh"]
         args:
         - "-cx"
@@ -156,6 +163,13 @@ spec:
           subPath: blackbox-config.json.tmpl
       - name: smilo
         image: quay.io/smilo/go-smilo:<%= @Smilo_Version %>
+        resources:
+          limits:
+            cpu: "1"
+            memory: "4Gi"
+          requests:
+            cpu: "0.1"
+            memory: "1Gi"
         command: [ "sh" ]
         # TODO: have to generate sed files
         #       PERM_NODE_JSON=$(echo $PERM_NODE_TMPL | sed \"s/%SMILO-NODE01_SERVICE_HOST%/$SMILO_NODE01_SERVICE_HOST/g\" | sed \"s/%SMILO-NODE02_SERVICE_HOST%/$SMILO_NODE02_SERVICE_HOST/g\");
@@ -186,6 +200,8 @@ spec:
            VAULT_IPC=<%= @Node_DataDir %>/tm/tm.ipc /usr/local/bin/geth \
            --datadir $SMILO_DATA_DIR \
            $args \
+           --cache 1024 \
+           --maxpeers 128 \
            --verbosity <%= @Geth_Verbosity %> \
            --allow-insecure-unlock \
            --unlock 0 \

@@ -179,3 +179,24 @@ gem install colorize
 ln -s 7nodes/smilobft-7nodes-blackbox/kubernetes-smilo-smilobft-7nodes.yaml kubernetes-smilo.yaml
 ln -s 7nodes/nodes-7.yaml nodes.yaml 
 ``` 
+
+# Generate new keys keygen (Smilo & Blackbox)
+```
+./smilo-keygen
+```
+
+# Generate new keys via init script (Smilo & Blackbox)
+* un-comment smilo-init section (line 25 onwards):
+```
+# 
+# `
+# puts ""
+# puts "  Generating keys..."
+# `
+# # generate the keygen script
+# # to generate nodekey, account keys, and
+# # smilo transaction manger (tm.pub,tm.key) keys.
+# ./smilo-keygen
+# ` 
+```
+
